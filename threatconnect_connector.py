@@ -646,13 +646,13 @@ class ThreatconnectConnector(BaseConnector):
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Unsupported method: {0}".format(rtype)), None)
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
-            return (action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
 
         try:
             response = request_func(url, params=params, json=body, headers=headers)
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
-            return (action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
 
         try:
             resp_json = response.json()
