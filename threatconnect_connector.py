@@ -24,7 +24,6 @@ import requests
 import simplejson as json
 import hmac
 from requests import Request
-from requests import Session
 import time
 import hashlib
 import base64
@@ -43,6 +42,7 @@ class RetVal(tuple):
 
 
 class ThreatconnectConnector(BaseConnector):
+
     # List of all of the actions that are available for this app
     ACTION_ID_HUNT_FILE = "hunt_file"
     ACTION_ID_HUNT_HOST = "hunt_host"
@@ -54,7 +54,7 @@ class ThreatconnectConnector(BaseConnector):
     TEST_ASSET_CONNECTIVITY = "test_asset_connectivity"
 
     def __init__(self):
-        # I'm not sure why but this is done all the time
+
         super(ThreatconnectConnector, self).__init__()
         self._state = {}
 
@@ -62,26 +62,12 @@ class ThreatconnectConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(params))
 
-        self.save_progress("Building the header...")
-
-        headers = self._create_header(THREATCONNECT_ENDPOINT_TEST)
-
         self.save_progress("Requesting a list of all owners visible to this user...")
 
-        url = self._get_url() + THREATCONNECT_ENDPOINT_TEST
+        ret_val, resp_json = self._make_rest_call(action_result, THREATCONNECT_ENDPOINT_TEST)
 
-        try:
-            response = requests.get(url, headers=headers)
-        except Exception as e:
-            return (action_result.set_status(phantom.APP_ERROR, "Could not make the request", e))
-
-        action_result.add_debug_data({"response_text": response.text})
-
-        try:
-            resp_json = response.json()
-        except:
-            return action_result.set_status(phantom.APP_ERROR, "Could not parse the response."
-                                                               "Please ensure the instance URL provided is in the given format (e.g. https://sandbox.threatconnect.com)")
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
 
         if not resp_json['status']:
             return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
@@ -103,7 +89,10 @@ class ThreatconnectConnector(BaseConnector):
             "displayed": True
         }
 
-        ret_val, response = self._make_rest_call(endpoint, body=kwargs, rtype="POST")
+        ret_val, response = self._make_rest_call(action_result, endpoint, body=kwargs, rtype="POST")
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
 
         status = response['status'] if type(response) == dict else THREATCONNECT_STATUS_FAILURE
 
@@ -158,10 +147,10 @@ class ThreatconnectConnector(BaseConnector):
         endpoint_uri = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + endpoint
 
         # Make the rest call
-        ret_val, response = self._make_rest_call(endpoint_uri, params=kwargs)
+        ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
 
         if (phantom.is_fail(ret_val)):
-            return action_result.set_status(phantom.APP_ERROR, "Rest Call Failed", response)
+            return action_result.get_status()
 
         if (response['status'] == THREATCONNECT_STATUS_FAILURE):
             return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
@@ -217,10 +206,10 @@ class ThreatconnectConnector(BaseConnector):
             kwargs['dnsActive'] = params.get(THREATCONNECT_JSON_DNSACTIVE, None)
             kwargs['whoisActive'] = params.get(THREATCONNECT_JSON_WHOISACTIVE, None)
 
-        ret_val, response = self._make_rest_call(endpoint_uri, body=kwargs, rtype=THREATCONNECT_POST)
+        ret_val, response = self._make_rest_call(action_result, endpoint_uri, body=kwargs, rtype=THREATCONNECT_POST)
 
         if (phantom.is_fail(ret_val)):
-            return action_result.set_status(phantom.APP_ERROR, "REST Call failed", response)
+            return action_result.get_status()
 
         else:
             # Gets to this block if the indicator is new and posted and great and successful
@@ -304,7 +293,7 @@ class ThreatconnectConnector(BaseConnector):
 
         endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE
 
-        ret_val, resp_json = self._make_rest_call(endpoint)
+        ret_val, resp_json = self._make_rest_call(action_result, endpoint)
 
         if (phantom.is_fail(ret_val)):
             self.save_progress("REST Call failed during ingestion")
@@ -549,8 +538,13 @@ class ThreatconnectConnector(BaseConnector):
             # Dumping the string causes quotes to show up and neither me or ThreatConnect likes that
             kwargs = json.dumps('filters=summary=' + required_fields['summary']).replace('"', "")
             endpoint_uri = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + 'files'
+
             # Make the rest call
-            ret_val, response = self._make_rest_call(endpoint_uri, params=kwargs)
+            action_result = ActionResult()
+            ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
+            if (phantom.is_fail(ret_val)):
+                return extra_data
+
             extra_data['md5'] = response['data']['file'][0].get('md5', None)
             extra_data['sha1'] = response['data']['file'][0].get('sha1', None)
             extra_data['sha256'] = response['data']['file'][0].get('sha256', None)
@@ -638,24 +632,32 @@ class ThreatconnectConnector(BaseConnector):
 
         return header
 
-    def _make_rest_call(self, endpoint, params={}, body={}, rtype=THREATCONNECT_GET):
+    def _make_rest_call(self, action_result, endpoint, params={}, body={}, rtype=THREATCONNECT_GET):
         """ Returns 2 values, use RetVal """
 
         url = self._get_url() + endpoint
 
         headers = self._create_header(endpoint, params=params, rtype=rtype, json=body)
 
-        # Prepare the request so I don't have to keep checking what rtype is
-        req = Request(rtype.upper(), url, params=params, json=body, headers=headers)
-        prepared = req.prepare()
-        s = Session()
-        response = s.send(prepared)
+        try:
+            request_func = getattr(requests, rtype)
+        except AttributeError:
+            # Set the action_result status to error, the handler function will most probably return as is
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unsupported method: {0}".format(rtype)), None)
+        except Exception as e:
+            # Set the action_result status to error, the handler function will most probably return as is
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
 
-        # Try to parse the response into a json.  Will fail if there's an error in the query
+        try:
+            response = request_func(url, params=params, json=body, headers=headers)
+        except Exception as e:
+            # Set the action_result status to error, the handler function will most probably return as is
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
+
         try:
             resp_json = response.json()
         except:
-            return RetVal(phantom.APP_ERROR, THREATCONNECT_ERR_JSON_PARSE)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, THREATCONNECT_ERR_JSON_PARSE), None)
 
         return RetVal(phantom.APP_SUCCESS, resp_json)
 
