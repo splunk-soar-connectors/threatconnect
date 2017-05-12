@@ -32,6 +32,7 @@ import os
 import inspect
 from datetime import datetime, timedelta
 from urllib import quote_plus
+from bs4 import BeautifulSoup
 
 requests.packages.urllib3.disable_warnings()
 
@@ -61,6 +62,8 @@ class ThreatconnectConnector(BaseConnector):
     def _test_connectivity(self, params):
 
         action_result = self.add_action_result(ActionResult(params))
+
+        self.save_progress("Using base url: {0}".format(self._get_url()))
 
         self.save_progress("Requesting a list of all owners visible to this user...")
 
@@ -632,6 +635,77 @@ class ThreatconnectConnector(BaseConnector):
 
         return header
 
+    def _process_empty_reponse(self, response, action_result):
+
+        if (200 <= response.status_code < 205):
+            return RetVal(phantom.APP_SUCCESS, {})
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
+
+    def _process_html_response(self, response, action_result):
+
+        # An html response, is bound to be an error
+        status_code = response.status_code
+
+        try:
+            soup = BeautifulSoup(response.text, "html.parser")
+            error_text = soup.text
+            split_lines = error_text.split('\n')
+            split_lines = [x.strip() for x in split_lines if x.strip()]
+            error_text = '\n'.join(split_lines)
+        except:
+            error_text = "Cannot parse error details"
+
+        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
+                error_text)
+
+        message = message.replace('{', ' ').replace('}', ' ')
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
+
+    def _process_json_response(self, r, action_result):
+
+        # Try a json parse
+        try:
+            resp_json = r.json()
+        except Exception as e:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse response as JSON", e), None)
+
+        if (200 <= r.status_code < 205):
+            return RetVal(phantom.APP_SUCCESS, resp_json)
+
+        action_result.add_data(resp_json)
+        message = r.text.replace('{', ' ').replace('}', ' ')
+        return RetVal( action_result.set_status( phantom.APP_ERROR, "Error from server, Status Code: {0} data returned: {1}".format(r.status_code, message)), resp_json)
+
+    def _process_response(self, r, action_result):
+
+        # store the r_text in debug data, it will get dumped in the logs if an error occurs
+        if hasattr(action_result, 'add_debug_data'):
+            if (r is not None):
+                action_result.add_debug_data({'r_text': r.text})
+                action_result.add_debug_data({'r_headers': r.headers})
+                action_result.add_debug_data({'r_status_code': r.status_code})
+            else:
+                action_result.add_debug_data({'r_text': 'r is None'})
+
+        # There are just too many differences in the response to handle all of them in the same function
+        if ('json' in r.headers.get('Content-Type', '')):
+            return self._process_json_response(r, action_result)
+
+        if ('html' in r.headers.get('Content-Type', '')):
+            return self._process_html_response(r, action_result)
+
+        # it's not an html or json, handle if it is a successfull empty reponse
+        if (200 <= r.status_code < 205) and (not r.text):
+            return self._process_empty_reponse(r, action_result)
+
+        # everything else is actually an error at this point
+        message = "Can't process resonse from server. Status Code: {0} Data from server: {1}".format(
+                r.status_code, r.text.replace('{', ' ').replace('}', ' '))
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
+
     def _make_rest_call(self, action_result, endpoint, params={}, body={}, rtype=THREATCONNECT_GET):
         """ Returns 2 values, use RetVal """
 
@@ -654,12 +728,7 @@ class ThreatconnectConnector(BaseConnector):
             # Set the action_result status to error, the handler function will most probably return as is
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
 
-        try:
-            resp_json = response.json()
-        except:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, THREATCONNECT_ERR_JSON_PARSE), None)
-
-        return RetVal(phantom.APP_SUCCESS, resp_json)
+        return self._process_response(response, action_result)
 
     def _get_url(self):
 
