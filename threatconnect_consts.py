@@ -51,7 +51,6 @@ THREATCONNECT_ENDPOINT_EMAIL = "emailAddresses"
 THREATCONNECT_ENDPOINT_FILE = "files"
 THREATCONNECT_ENDPOINT_HOST = "hosts"
 THREATCONNECT_ENDPOINT_URL = "urls"
-THREATCONNECT_API_URL_ENTERPRISE = "https://sandbox.threatconnect.com/api/v2/"
 THREATCONNECT_API_URL = "{base}/api/v2"
 THREATCONNECT_STATUS_FAILURE = 'Failure'
 THREATCONNECT_NO_ENDPOINT_ERR = "Could not resolve primary_field parameter type"

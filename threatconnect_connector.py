@@ -659,7 +659,7 @@ class ThreatconnectConnector(BaseConnector):
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
                 error_text)
 
-        message = message.replace('{', ' ').replace('}', ' ')
+        message = message.replace('{', '{{').replace('}', '}}')
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -675,19 +675,16 @@ class ThreatconnectConnector(BaseConnector):
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         action_result.add_data(resp_json)
-        message = r.text.replace('{', ' ').replace('}', ' ')
+        message = r.text.replace('{', '{{').replace('}', '}}')
         return RetVal( action_result.set_status( phantom.APP_ERROR, "Error from server, Status Code: {0} data returned: {1}".format(r.status_code, message)), resp_json)
 
     def _process_response(self, r, action_result):
 
         # store the r_text in debug data, it will get dumped in the logs if an error occurs
         if hasattr(action_result, 'add_debug_data'):
-            if (r is not None):
-                action_result.add_debug_data({'r_text': r.text})
-                action_result.add_debug_data({'r_headers': r.headers})
-                action_result.add_debug_data({'r_status_code': r.status_code})
-            else:
-                action_result.add_debug_data({'r_text': 'r is None'})
+            action_result.add_debug_data({'r_text': r.text})
+            action_result.add_debug_data({'r_headers': r.headers})
+            action_result.add_debug_data({'r_status_code': r.status_code})
 
         # There are just too many differences in the response to handle all of them in the same function
         if ('json' in r.headers.get('Content-Type', '')):
@@ -701,8 +698,8 @@ class ThreatconnectConnector(BaseConnector):
             return self._process_empty_reponse(r, action_result)
 
         # everything else is actually an error at this point
-        message = "Can't process resonse from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace('{', ' ').replace('}', ' '))
+        message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
+                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
