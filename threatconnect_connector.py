@@ -730,8 +730,10 @@ class ThreatconnectConnector(BaseConnector):
     def _get_url(self):
 
         config = self.get_config()
-
-        return THREATCONNECT_API_URL.format(base=config[THREATCONNECT_BASE_URL]) + "/"
+        if config[THREATCONNECT_BASE_URL] == "https://sandbox.threatconnect.com":
+            return THREATCONNECT_SANDBOX_API_URL.format(base=config[THREATCONNECT_BASE_URL]) + "/"
+        else:
+            return THREATCONNECT_API_URL.format(base=config[THREATCONNECT_BASE_URL]) + "/"
 
     def _load_state(self):
 
