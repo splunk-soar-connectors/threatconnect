@@ -23,8 +23,8 @@
     },
     "base_url": {
       "data_type": "string",
-      "description": "Base URL for instance (e.g. https://sandbox.threatconnect.com)",
-      "default": "https://sandbox.threatconnect.com",
+      "description": "Base URL for instance (e.g. https://api.threatconnect.com)",
+      "default": "https://api.threatconnect.com",
       "order": 2,
       "required": true
     },
