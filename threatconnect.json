@@ -1,7 +1,7 @@
 {
   "appid": "0e80d9ba-2bd1-45aa-8654-3ea99f5d1ff7",
   "name": "ThreatConnect",
-  "description": "This app integrates with the ThreatConnect platform allowing users to post, hunt, and ingest data. ",
+  "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion. ",
   "type": "threat intel",
   "main_module": "threatconnect_connector.pyc",
     "app_version": "1.0.59",
