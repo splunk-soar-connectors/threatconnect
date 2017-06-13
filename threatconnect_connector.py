@@ -733,7 +733,7 @@ class ThreatconnectConnector(BaseConnector):
     def _get_url(self):
 
         config = self.get_config()
-        if config[THREATCONNECT_BASE_URL] == "https://sandbox.threatconnect.com":
+        if 'sandbox.threatconnect.com' in config[THREATCONNECT_BASE_URL]:
             return THREATCONNECT_SANDBOX_API_URL.format(base=config[THREATCONNECT_BASE_URL]) + "/"
         else:
             return THREATCONNECT_API_URL.format(base=config[THREATCONNECT_BASE_URL]) + "/"
@@ -770,6 +770,9 @@ class ThreatconnectConnector(BaseConnector):
 
     def initialize(self):
         self._load_state()
+        config = self.get_config()
+        config[THREATCONNECT_BASE_URL] = config[THREATCONNECT_BASE_URL].rstrip('/')
+        
         return phantom.APP_SUCCESS
 
     def finalize(self):

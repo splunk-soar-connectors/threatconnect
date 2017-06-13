@@ -1,11 +1,11 @@
 {
   "appid": "0e80d9ba-2bd1-45aa-8654-3ea99f5d1ff7",
   "name": "ThreatConnect",
-  "description": "This app integrates with the ThreatConnect platform in order to provide actions such as <b>post data</b> and <b>hunt ip</b>, along with ingestion.",
+  "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion. ",
   "type": "threat intel",
   "main_module": "threatconnect_connector.pyc",
-    "app_version": "1.0.56",
-    "utctime_updated": "2017-06-07T20:37:33.000000Z",
+    "app_version": "1.0.60",
+    "utctime_updated": "2017-06-08T22:31:30.000000Z",
   "product_vendor": "ThreatConnect",
   "product_name": "ThreatConnect",
   "product_version_regex": ".*",
@@ -23,8 +23,8 @@
     },
     "base_url": {
       "data_type": "string",
-      "description": "Base URL for instance (e.g. https://sandbox.threatconnect.com)",
-      "default": "https://sandbox.threatconnect.com",
+      "description": "Base URL for instance (e.g. https://api.threatconnect.com)",
+      "default": "https://api.threatconnect.com",
       "order": 2,
       "required": true
     },
