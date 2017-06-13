@@ -725,6 +725,9 @@ class ThreatconnectConnector(BaseConnector):
             # Set the action_result status to error, the handler function will most probably return as is
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
 
+        # Added line
+        print response.json()
+
         return self._process_response(response, action_result)
 
     def _get_url(self):
