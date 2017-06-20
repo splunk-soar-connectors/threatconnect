@@ -769,7 +769,7 @@ class ThreatconnectConnector(BaseConnector):
         self._load_state()
         config = self.get_config()
         config[THREATCONNECT_BASE_URL] = config[THREATCONNECT_BASE_URL].rstrip('/')
-        
+
         return phantom.APP_SUCCESS
 
     def finalize(self):
