@@ -544,12 +544,6 @@
           "order": 7,
           "primary": false,
           "required": false
-        },
-        "owner": {
-            "data_type": "string",
-            "description": "Indicator Owner within ThreatConnect",
-            "order": 8,
-            "required": false
         }
       },
       "read_only": false,

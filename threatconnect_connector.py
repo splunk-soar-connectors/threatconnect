@@ -95,13 +95,15 @@ class ThreatconnectConnector(BaseConnector):
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
-        if not resp_json['status']:
+        if not resp_json.get('status'):
             return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
-        elif resp_json['status'] != "Success":
+        elif resp_json.get('status') != "Success":
             return action_result.set_status(phantom.APP_ERROR, "Test connectivity failed", resp_json)
 
         self.save_progress("List owners succeeded.")
         action_result.add_data(resp_json)
+        total_objects = int(resp_json['data']['resultCount'])
+        action_result.set_summary({"num_owners": total_objects})
 
         return action_result.set_status(phantom.APP_SUCCESS, "List owners succeeded")
 
