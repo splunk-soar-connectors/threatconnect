@@ -10,7 +10,7 @@
   "product_name": "ThreatConnect",
   "product_version_regex": ".*",
   "logo": "threatconnect.png",
-  "min_phantom_version": "2.0.264",
+  "min_phantom_version": "2.1.452",
   "publisher": "Phantom",
   "package_name": "phantom_threatconnect",
   "license": "Copyright (c) Phantom Cyber Corporation 2016-2017",
