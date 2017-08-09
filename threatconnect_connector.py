@@ -32,8 +32,6 @@ from datetime import datetime, timedelta
 from urllib import quote_plus
 from bs4 import BeautifulSoup
 
-requests.packages.urllib3.disable_warnings()
-
 
 class RetVal(tuple):
     def __new__(cls, val1, val2):
