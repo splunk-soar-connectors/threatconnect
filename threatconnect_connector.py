@@ -46,6 +46,7 @@ class ThreatconnectConnector(BaseConnector):
     ACTION_ID_HUNT_URL = "hunt_url"
     ACTION_ID_HUNT_EMAIL = "hunt_email"
     ACTION_ID_HUNT_IP = "hunt_ip"
+    ACTION_ID_LIST_OWNERS = "list_owners"
     ACTION_ID_POST_DATA = "post_data"
     ACTION_ID_ON_POLL = "on_poll"
     TEST_ASSET_CONNECTIVITY = "test_asset_connectivity"
@@ -76,6 +77,31 @@ class ThreatconnectConnector(BaseConnector):
         self.save_progress("Test connectivity succeeded")
 
         return action_result.set_status(phantom.APP_SUCCESS, "Test connectivity succeeded")
+
+    def _list_owners(self, params):
+
+        action_result = self.add_action_result(ActionResult(params))
+
+        self.save_progress("Using base url: {0}".format(self._get_url()))
+
+        self.save_progress("Requesting a list of all owners visible to this user...")
+
+        ret_val, resp_json = self._make_rest_call(action_result, THREATCONNECT_ENDPOINT_TEST)
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        if not resp_json.get('status'):
+            return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
+        elif resp_json.get('status') != "Success":
+            return action_result.set_status(phantom.APP_ERROR, "Test connectivity failed", resp_json)
+
+        self.save_progress("List owners succeeded.")
+        action_result.add_data(resp_json)
+        total_objects = int(resp_json['data']['resultCount'])
+        action_result.set_summary({"num_owners": total_objects})
+
+        return action_result.set_status(phantom.APP_SUCCESS, "List owners succeeded")
 
     def _add_attribute(self, action_result, attribute_name, attribute_value, indicator_summary, indicator_type):
 
@@ -140,23 +166,55 @@ class ThreatconnectConnector(BaseConnector):
         # Encodes any fishy values...  ESPECIALLY THAT PESKY PLUS SIGN
         indicator_to_hunt = quote_plus(indicator_to_hunt)
 
-        # Dumping the string causes quotes to show up and neither me or ThreatConnect likes that
-        kwargs = json.dumps('filters=summary=' + indicator_to_hunt).replace('"', "")
-
         endpoint_uri = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + endpoint
 
-        # Make the rest call
-        ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
+        if (params.get(THREATCONNECT_JSON_OWNER, None)):
+            owners_list = []
+            owners = params.get(THREATCONNECT_JSON_OWNER, None)
 
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
+            # First work on the comma as the seperator
+            if type(owners) is list:
+                owners_list = owners
+            elif (',' in owners):
+                owners_list = owners.split(',')
+            elif(';' in owners):
+                owners_list = owners.split(';')
+            else:
+                owners_list.append(owners)
 
-        if (response['status'] == THREATCONNECT_STATUS_FAILURE):
-            return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
+            total_objects = 0
+            for owner in owners_list:
+                owner = quote_plus(owner)
+                kwargs = json.dumps('filters=summary=' + indicator_to_hunt + '&owner=' + owner).replace('"', "")
+                # Make the rest call
+                ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
 
-        action_result.add_data(response)
+                if (phantom.is_fail(ret_val)):
+                    return action_result.get_status()
 
-        action_result.set_summary({"total_objects": response['data']['resultCount']})
+                if (response['status'] == THREATCONNECT_STATUS_FAILURE):
+                    return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
+
+                action_result.add_data(response)
+                total_objects += int(response['data']['resultCount'])
+
+            action_result.set_summary({"total_objects": total_objects})
+
+        else:
+            # Dumping the string causes quotes to show up and neither me or ThreatConnect likes that
+            kwargs = json.dumps('filters=summary=' + indicator_to_hunt).replace('"', "")
+
+            # Make the rest call
+            ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+            if (response['status'] == THREATCONNECT_STATUS_FAILURE):
+                return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
+
+            action_result.add_data(response)
+            action_result.set_summary({"total_objects": response['data']['resultCount']})
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -721,6 +779,12 @@ class ThreatconnectConnector(BaseConnector):
             # Set the action_result status to error, the handler function will most probably return as is
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
 
+        # Added line
+        try:
+            self.debug_print("raw_response: ", response.json())
+        except:
+            self.debug_print("text_raw_response: ", response.text)
+
         return self._process_response(response, action_result)
 
     def _get_url(self):
@@ -766,6 +830,8 @@ class ThreatconnectConnector(BaseConnector):
             ret_val = self._hunt_indicator(param)
         elif (action == self.ACTION_ID_HUNT_URL):
             ret_val = self._hunt_indicator(param)
+        elif (action == self.ACTION_ID_LIST_OWNERS):
+            ret_val = self._list_owners(param)
         elif (action == self.ACTION_ID_ON_POLL):
             ret_val = self._on_poll(param)
 
