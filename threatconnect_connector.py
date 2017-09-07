@@ -704,6 +704,8 @@ class ThreatconnectConnector(BaseConnector):
 
         url = self._get_url() + endpoint
 
+        config = self.get_config()
+
         headers = self._create_header(endpoint, params=params, rtype=rtype, json=body)
 
         try:
@@ -716,7 +718,7 @@ class ThreatconnectConnector(BaseConnector):
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
 
         try:
-            response = request_func(url, params=params, json=body, headers=headers)
+            response = request_func(url, params=params, json=body, headers=headers, verify=config.get('verify_server_cert', False))
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
