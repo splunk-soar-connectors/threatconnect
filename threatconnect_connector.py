@@ -32,6 +32,8 @@ from datetime import datetime, timedelta
 from urllib import quote_plus
 from bs4 import BeautifulSoup
 
+from django.utils.dateparse import parse_datetime
+
 
 class RetVal(tuple):
     def __new__(cls, val1, val2):
@@ -321,13 +323,14 @@ class ThreatconnectConnector(BaseConnector):
         possible_indicators = []
 
         # Convert the start_time determined by on_poll to UNIX timestamp to compare to the indicator
-        start_time_unix = int(datetime.strptime(start_time, DATETIME_FORMAT).strftime("%s"))
+        start_time_unix = int(parse_datetime(start_time).strftime("%s"))
 
         # Iterate through all the indicators starting at the top of the list (which should be most recent)
         for indicator in resp_json['data']['indicator']:
+            indicator['dateAdded'] = parse_datetime(indicator['dateAdded']).strftime(DATETIME_FORMAT)
 
             # Convert the indicator's dateAdded string to a UNIX timestamp to make life easier for everyone
-            indicator_date_added_unix = int(datetime.strptime(indicator['dateAdded'], DATETIME_FORMAT).strftime("%s"))
+            indicator_date_added_unix = int(parse_datetime(indicator['dateAdded']).strftime("%s"))
 
             # Add the indicator to save it for later because runtime is important!!!
             possible_indicators.append(indicator)
@@ -425,8 +428,7 @@ class ThreatconnectConnector(BaseConnector):
                         if "duplicate" in container_message:
                             return phantom.APP_SUCCESS, "No new indicators found"
 
-                        start_time = (datetime.strptime(indicator['dateAdded'], DATETIME_FORMAT) + timedelta(seconds=1)).strftime(
-                            DATETIME_FORMAT)
+                        start_time = (parse_datetime(indicator['dateAdded']) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
 
                         self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = start_time
 
@@ -598,7 +600,7 @@ class ThreatconnectConnector(BaseConnector):
         elif (phantom.is_url(summary)):
             return "URL Artifact", "requestURL", "url"
         elif (phantom.is_ip(summary)):
-             return "IP Artifact", "deviceAddress", "ip"
+            return "IP Artifact", "deviceAddress", "ip"
         try:
             # Check for IPV6
             ipaddr.IPAddress(summary)
