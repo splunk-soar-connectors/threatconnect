@@ -327,6 +327,7 @@ class ThreatconnectConnector(BaseConnector):
 
         # Iterate through all the indicators starting at the top of the list (which should be most recent)
         for indicator in resp_json['data']['indicator']:
+            indicator['dateAdded'] = parse_datetime(indicator['dateAdded']).strftime(DATETIME_FORMAT)
 
             # Convert the indicator's dateAdded string to a UNIX timestamp to make life easier for everyone
             indicator_date_added_unix = int(parse_datetime(indicator['dateAdded']).strftime("%s"))
