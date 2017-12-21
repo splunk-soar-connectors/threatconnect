@@ -1,1111 +1,1111 @@
 {
-    "appid": "0e80d9ba-2bd1-45aa-8654-3ea99f5d1ff7",
-    "name": "ThreatConnect",
-    "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion. ",
-    "type": "threat intel",
-    "main_module": "threatconnect_connector.pyc",
-    "app_version": "1.0.69",
-    "utctime_updated": "2017-12-21T03:25:24.000000Z",
-    "product_vendor": "ThreatConnect",
-    "product_name": "ThreatConnect",
-    "product_version_regex": ".*",
-    "logo": "logo_threatconnect.svg",
-    "logo_dark": "logo_threatconnect_dark.svg",
-    "min_phantom_version": "3.0.190",
-    "publisher": "Phantom",
-    "package_name": "phantom_threatconnect",
-    "license": "Copyright (c) Phantom Cyber Corporation 2016-2017",
-    "configuration": {
-        "access_id": {
-            "data_type": "string",
-            "description": "Access ID",
-            "order": 0,
-            "required": true
-        },
-        "base_url": {
-            "data_type": "string",
-            "description": "Base URL for instance (e.g. https://api.threatconnect.com)",
-            "default": "https://api.threatconnect.com",
-            "order": 2,
-            "required": true
-        },
-        "secret_key": {
-            "data_type": "string",
-            "description": "Secret Key",
-            "order": 1,
-            "required": true
-        },
-        "max_containers": {
-            "data_type": "numeric",
-            "description": "Max containers per poll",
-            "order": 3,
-            "required": false,
-            "default": 100
-        },
-        "interval_days": {
-            "data_type": "numeric",
-            "order": 4,
-            "description": "Last 'N' Days to get data of during 'Poll Now' and scheduled polling",
-            "default": "7",
-            "required": false
-        }
+  "appid": "0e80d9ba-2bd1-45aa-8654-3ea99f5d1ff7",
+  "name": "ThreatConnect",
+  "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion. ",
+  "type": "threat intel",
+  "main_module": "threatconnect_connector.pyc",
+    "app_version": "1.0.65",
+    "utctime_updated": "2017-08-22T23:54:06.000000Z",
+  "product_vendor": "ThreatConnect",
+  "product_name": "ThreatConnect",
+  "product_version_regex": ".*",
+  "logo": "threatconnect.png",
+  "min_phantom_version": "3.0.190",
+  "publisher": "Phantom",
+  "package_name": "phantom_threatconnect",
+  "license": "Copyright (c) Phantom Cyber Corporation 2016-2017",
+  "configuration": {
+    "access_id": {
+      "data_type": "string",
+      "description": "Access ID",
+      "order": 0,
+      "required": true
     },
-    "actions": [
+    "base_url": {
+      "data_type": "string",
+      "description": "Base URL for instance (e.g. https://api.threatconnect.com)",
+      "default": "https://api.threatconnect.com",
+      "order": 2,
+      "required": true
+    },
+    "secret_key": {
+      "data_type": "string",
+      "description": "Secret Key",
+      "order": 1,
+      "required": true
+    },
+    "max_containers": {
+      "data_type": "numeric",
+      "description": "Max containers per poll",
+      "order": 3,
+      "required": false,
+      "default": 100
+    },
+    "interval_days": {
+      "data_type": "numeric",
+      "order": 4,
+      "description": "Last 'N' Days to get data of during 'Poll Now' and scheduled polling",
+      "default": "7",
+      "required": false
+    }
+  },
+  "actions": [
+
+    {
+      "action": "on poll",
+      "description": "Callback action for the on_poll ingest functionality",
+      "verbose": "<p>Basic polling configuration is available within the asset configuration.  <b>On_poll</b>'s maximum ingested indicators is, by default, 100.  This can be found in the asset configuration under <b>max_containers</b>.  The other optional parameter in the asset configuration, <b>num_of_days</b>, specifies how old to start polling from during the first ingestion cycle.  The default value is 7 days.  This <b>num_of_days</b> parameter also affects when Poll Now starts polling as well.</p><p>This action will start from the oldest indicator and create a container for each.</p><p>The following CEF fields will be created, depending upon the IOC type:</p><table><tr><th>IOC</th><th>Artifact Name</th><th>CEF Field</th></tr><tr><td>Address IPv4</td><td>IP Artifact</td><td>deviceAddress</td></tr><tr><td>Address IPv6</td><td>IP Artifact</td><td>deviceCustomIPv6Address1</td></tr><tr><td>Email</td><td>Email Address Artifact</td><td>emailAddress</td></tr><tr><td>File</td><td>File Artifact</td><td>fileHashMd5, fileHashSha1, fileHashSha256 (where applicable)</td></tr><tr><td>Host</td><td>Domain Artifact</td><td>DeviceDnsDomain</td></tr><tr><td>URL</td><td>URL Artifact</td><td>requestURL</td></tr><tr><td>CIDR IPv4</td><td>CIDR Artifact</td><td>deviceAddress (IP), cidrPrefix, cidr (CIDR)</td></tr><tr><td>Mutex</td><td>Mutex Artifact</td><td>mutex</td></tr><tr><td>Registry Key</td><td>Registry Key Artifact</td><td>registryKey (Registry Key Name), registryValue (Value Name), registryType (Value Type)</td></tr><tr><td>ASN</td><td>ASN Artifact</td><td>asn</td></tr><tr><td>User Agent</td><td>User Agent Artifact</td><td>requestClientApplication</td></tr></table><p>Additional CEF fields that all artifacts will have are:</p><table><tr><th>CEF Field</th><th>Description</th></tr><tr><td>deviceCustomDate1</td><td>Date Created</td></tr><tr><td>deviceCustomDate1Label</td><td>Label for above</td></tr><tr><td>deviceCustomDate2</td><td>Last Modified Date</td></tr><tr><td>deviceCustomDate2Label</td><td>Label for above</td></tr><tr><td>rating</td><td>Indicator rating</td></tr><tr><td>confidence</td><td>Indicator confidence</td></tr><tr><td>threatAssessRating</td><td>Threat Assessment rating</td></tr><tr><td>threatAssessConfidence</td><td>Threat Assessment Confidence</td></tr></table><p>Rating, confidence, threatAssessRating, and threatAssessConfidence will only be added if they are present within the indicator.</p><p>Any indicator that does not fall within any of the categories above is considered a custom indicator, and, as a result, will have a CEF field of 'cn1'.</p><p>It is also very important that the Maximum Container for scheduled polling configured should be greater than maximum events that are generated per second. If the app detects it got the maximum configured events and all occurred in the same second, it will start polling from the next second in the next polling cycle.</p>",
+      "identifier": "on_poll",
+      "output": [],
+      "parameters": {},
+      "read_only": true,
+      "type": "ingest",
+      "versions": "EQ(*)"
+    },
+    {
+      "action": "test connectivity",
+      "description": "Validate the asset configuration for connectivity",
+      "identifier": "test_asset_connectivity",
+      "output": [],
+      "parameters": {},
+      "read_only": true,
+      "type": "test",
+      "verbose": "This action attempts to authenticate a GET request with the ThreatConnect API using a signature.",
+      "versions": "EQ(*)"
+    },
+    {
+      "action": "post data",
+      "description": "Create an indicator and post it to ThreatConnect",
+      "identifier": "post_data",
+      "output": [
         {
-            "action": "on poll",
-            "description": "Callback action for the on_poll ingest functionality",
-            "verbose": "<p>Basic polling configuration is available within the asset configuration.  <b>On_poll</b>'s maximum ingested indicators is, by default, 100.  This can be found in the asset configuration under <b>max_containers</b>.  The other optional parameter in the asset configuration, <b>num_of_days</b>, specifies how old to start polling from during the first ingestion cycle.  The default value is 7 days.  This <b>num_of_days</b> parameter also affects when Poll Now starts polling as well.</p><p>This action will start from the oldest indicator and create a container for each.</p><p>The following CEF fields will be created, depending upon the IOC type:</p><table><tr><th>IOC</th><th>Artifact Name</th><th>CEF Field</th></tr><tr><td>Address IPv4</td><td>IP Artifact</td><td>deviceAddress</td></tr><tr><td>Address IPv6</td><td>IP Artifact</td><td>deviceCustomIPv6Address1</td></tr><tr><td>Email</td><td>Email Address Artifact</td><td>emailAddress</td></tr><tr><td>File</td><td>File Artifact</td><td>fileHashMd5, fileHashSha1, fileHashSha256 (where applicable)</td></tr><tr><td>Host</td><td>Domain Artifact</td><td>DeviceDnsDomain</td></tr><tr><td>URL</td><td>URL Artifact</td><td>requestURL</td></tr><tr><td>CIDR IPv4</td><td>CIDR Artifact</td><td>deviceAddress (IP), cidrPrefix, cidr (CIDR)</td></tr><tr><td>Mutex</td><td>Mutex Artifact</td><td>mutex</td></tr><tr><td>Registry Key</td><td>Registry Key Artifact</td><td>registryKey (Registry Key Name), registryValue (Value Name), registryType (Value Type)</td></tr><tr><td>ASN</td><td>ASN Artifact</td><td>asn</td></tr><tr><td>User Agent</td><td>User Agent Artifact</td><td>requestClientApplication</td></tr></table><p>Additional CEF fields that all artifacts will have are:</p><table><tr><th>CEF Field</th><th>Description</th></tr><tr><td>deviceCustomDate1</td><td>Date Created</td></tr><tr><td>deviceCustomDate1Label</td><td>Label for above</td></tr><tr><td>deviceCustomDate2</td><td>Last Modified Date</td></tr><tr><td>deviceCustomDate2Label</td><td>Label for above</td></tr><tr><td>rating</td><td>Indicator rating</td></tr><tr><td>confidence</td><td>Indicator confidence</td></tr><tr><td>threatAssessRating</td><td>Threat Assessment rating</td></tr><tr><td>threatAssessConfidence</td><td>Threat Assessment Confidence</td></tr></table><p>Rating, confidence, threatAssessRating, and threatAssessConfidence will only be added if they are present within the indicator.</p><p>Any indicator that does not fall within any of the categories above is considered a custom indicator, and, as a result, will have a CEF field of 'cn1'.</p><p>It is also very important that the Maximum Container for scheduled polling configured should be greater than maximum events that are generated per second. If the app detects it got the maximum configured events and all occurred in the same second, it will start polling from the next second in the next polling cycle.</p>",
-            "identifier": "on_poll",
-            "output": [],
-            "parameters": {},
-            "read_only": true,
-            "type": "ingest",
-            "versions": "EQ(*)"
+          "data_path": "action_result.data.*.data.address.rating",
+          "data_type": "numeric"
         },
         {
-            "action": "test connectivity",
-            "description": "Validate the asset configuration for connectivity",
-            "identifier": "test_asset_connectivity",
-            "output": [],
-            "parameters": {},
-            "read_only": true,
-            "type": "test",
-            "verbose": "This action attempts to authenticate a GET request with the ThreatConnect API using a signature.",
-            "versions": "EQ(*)"
+          "data_path": "action_result.data.*.data.address.confidence",
+          "data_type": "numeric"
         },
         {
-            "action": "post data",
-            "description": "Create an indicator and post it to ThreatConnect",
-            "identifier": "post_data",
-            "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.attribute_name",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.attribute_value",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.confidence",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.dnsActive",
-                    "data_type": "boolean"
-                },
-                {
-                    "contains": [
-                        "ip",
-                        "ipv6",
-                        "email",
-                        "hash",
-                        "md5",
-                        "sha1",
-                        "sha256",
-                        "domain",
-                        "url"
-                    ],
-                    "data_path": "action_result.parameter.primary_field",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.rating",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.size",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.parameter.whoisActive",
-                    "data_type": "boolean"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "contains": [
-                        "ip"
-                    ],
-                    "data_path": "action_result.data.*.data.address.ip",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.owner.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.owner.name",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.owner.type",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.address.webLink",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "email"
-                    ],
-                    "data_path": "action_result.data.*.data.emailAddress.address",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.owner.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.owner.name",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.owner.type",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.emailAddress.webLink",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "hash",
-                        "md5"
-                    ],
-                    "data_path": "action_result.data.*.data.file.md5",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.owner.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.owner.name",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.owner.type",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "contains": [
-                        "hash",
-                        "sha1"
-                    ],
-                    "data_path": "action_result.data.*.data.file.sha1",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "hash",
-                        "sha256"
-                    ],
-                    "data_path": "action_result.data.*.data.file.sha256",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.size",
-                    "data_type": "numeric"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.file.webLink",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.dnsActive",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "domain"
-                    ],
-                    "data_path": "action_result.data.*.data.host.hostName",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.owner.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.owner.name",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.owner.type",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.webLink",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.whoisActive",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.owner.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.owner.name",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.owner.type",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.text",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.url.webLink",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary.attribute_added",
-                    "data_type": "boolean"
-                },
-                {
-                    "data_path": "action_result.summary.indicator_created/updated",
-                    "data_type": "boolean"
-                },
-                {
-                    "data_path": "action_result.summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
-                }
-            ],
-            "parameters": {
-                "confidence": {
-                    "data_type": "numeric",
-                    "description": "Analytic confidence (0 to 100)",
-                    "order": 2,
-                    "required": false
-                },
-                "dnsActive": {
-                    "data_type": "boolean",
-                    "description": "Is DNS active",
-                    "order": 4,
-                    "required": false
-                },
-                "primary_field": {
-                    "contains": [
-                        "ip",
-                        "ipv6",
-                        "email",
-                        "hash",
-                        "md5",
-                        "sha1",
-                        "sha256",
-                        "domain",
-                        "url"
-                    ],
-                    "data_type": "string",
-                    "description": "IP, email, file hash, domain, or URL",
-                    "order": 0,
-                    "required": true,
-                    "primary": true
-                },
-                "rating": {
-                    "data_type": "numeric",
-                    "description": "Indicator rating (0 to 5)",
-                    "order": 1,
-                    "required": false
-                },
-                "size": {
-                    "data_type": "numeric",
-                    "description": "Size of file in bytes",
-                    "order": 3,
-                    "required": false
-                },
-                "whoisActive": {
-                    "data_type": "boolean",
-                    "description": "Is WHOIS active",
-                    "order": 5,
-                    "required": false
-                },
-                "attribute_name": {
-                    "description": "Name of attribute to add",
-                    "data_type": "string",
-                    "order": 6,
-                    "primary": false,
-                    "required": false
-                },
-                "attribute_value": {
-                    "description": "Value of attribute being added",
-                    "data_type": "string",
-                    "order": 7,
-                    "primary": false,
-                    "required": false
-                }
-            },
-            "read_only": false,
-            "render": {
-                "height": 5,
-                "title": "Post Data",
-                "type": "json",
-                "width": 12
-            },
-            "type": "generic",
-            "versions": "EQ(*)",
-            "verbose": "<p>This action will post an indicator back to the ThreatConnect platform.  The only required field is <b>primary_field</b>.  This parameter can be an IP address, an email, a hash (MD5, SHA-1, or SHA-256), a host name, or a URL.</p><p>This action also allows for one to post multiple hashes into one indicator.  In order to post multiple hashes to one indicator, put all the hashes in the <b>primary_field</b> separated by commas.  An indicator can have a maximum of one MD5, one SHA-1, and one SHA-256 hash.  If multiple hashes of the same type are entered into the primary field, such as multiple MD5 hashes, the last hash will be the only one posted.</P><p>All indicator types can take the optional parameters <b>rating</b> and <b>confidence</b>.  The specialized optional parameters for files and hosts are below:</p>Files<ul><li>size</li></ul>Hosts<ul><li>dnsActive</li><li>whoisActive</li></ul><p>This action also allows for the addition of attributes to the specified indicator that is created.  The attribute will only be created if both the <b>attribute_name</b> and the <b>attribute_value</b> values are populated.  If attempting to write an attribute with a name that does not exist or apply to the indicator's type, the action will fail.  </p><p>The data paths listed below are all the <i>possible</i> data paths, but they will differ based upon the given parameter in <b>primary_field</b>.  The data paths will be of the form <b>action_result.data.*.[Indicator Type].*</b>, where the Indicator Type is the type given to the parameter in <b>primary_field</b>.  All file hashes will have the same Indicator Type.  If one attempts to post an indicator that already exists on ThreatConnect, that indicator will be updated.</p>"
+          "data_path": "action_result.data.*.data.address.description",
+          "data_type": "string"
         },
         {
-            "action": "hunt ip",
-            "description": "Hunt an IP and retrieve any available information",
-            "identifier": "hunt_ip",
-            "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "ip",
-                        "ipv6"
-                    ],
-                    "data_path": "action_result.parameter.ip",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.*.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Date Added",
-                    "column_order": 0,
-                    "data_path": "action_result.data.*.data.address.*.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.*.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.*.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.*.ip",
-                    "data_type": "string",
-                    "contains": [
-                        "ip",
-                        "ipv6"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.*.ip",
-                    "data_type": "string",
-                    "contains": [
-                        "ip",
-                        "ipv6"
-                    ]
-                },
-                {
-                    "column_name": "Last Modified",
-                    "column_order": 1,
-                    "data_path": "action_result.data.*.data.address.*.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "column_name": "Owner Name",
-                    "column_order": 2,
-                    "data_path": "action_result.data.*.data.address.*.ownerName",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.address.*.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.address.*.webLink",
-                    "data_type": "string",
-                    "column_order": 3,
-                    "column_name": "Web Link"
-                },
-                {
-                    "data_path": "action_result.data.*.data.resultCount",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
-                }
-            ],
-            "parameters": {
-                "ip": {
-                    "contains": [
-                        "ip",
-                        "ipv6"
-                    ],
-                    "data_type": "string",
-                    "description": "IP to hunt",
-                    "order": 0,
-                    "primary": true,
-                    "required": true
-                }
-            },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt Ip",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "verbose": "",
-            "versions": "EQ(*)"
+          "data_path": "action_result.data.*.data.emailAddress.rating",
+          "data_type": "numeric"
         },
         {
-            "action": "hunt file",
-            "description": "Hunt a file hash and retrieve available information",
-            "identifier": "hunt_file",
-            "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "hash",
-                        "md5",
-                        "sha1",
-                        "sha256"
-                    ],
-                    "data_path": "action_result.parameter.hash",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.*.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Date Added",
-                    "column_order": 0,
-                    "data_path": "action_result.data.*.data.file.*.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.*.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.*.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Last Modified",
-                    "column_order": 1,
-                    "data_path": "action_result.data.*.data.file.*.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.*.md5",
-                    "data_type": "string",
-                    "contains": [
-                        "md5"
-                    ]
-                },
-                {
-                    "column_name": "Owner Name",
-                    "column_order": 2,
-                    "data_path": "action_result.data.*.data.file.*.ownerName",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.*.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.*.sha1",
-                    "data_type": "string",
-                    "contains": [
-                        "sha1"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.data.file.*.sha256",
-                    "data_type": "string",
-                    "contains": [
-                        "sha256"
-                    ]
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.file.*.webLink",
-                    "data_type": "string",
-                    "column_order": 3,
-                    "column_name": "Web Link"
-                },
-                {
-                    "data_path": "action_result.data.*.data.resultCount",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
-                }
-            ],
-            "parameters": {
-                "hash": {
-                    "contains": [
-                        "hash",
-                        "md5",
-                        "sha1",
-                        "sha256"
-                    ],
-                    "data_type": "string",
-                    "description": "File hash (md5, sha1, sha256)",
-                    "order": 0,
-                    "primary": true,
-                    "required": true
-                }
-            },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt File",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "verbose": "",
-            "versions": "EQ(*)"
+          "data_path": "action_result.data.*.data.emailAddress.confidence",
+          "data_type": "numeric"
         },
         {
-            "action": "hunt email",
-            "description": "Hunt an email and retrieve available information",
-            "identifier": "hunt_email",
-            "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "email"
-                    ],
-                    "data_path": "action_result.parameter.email",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.*.address",
-                    "data_type": "string",
-                    "contains": [
-                        "email"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.*.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Date Added",
-                    "column_order": 0,
-                    "data_path": "action_result.data.*.data.emailAddress.*.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.*.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.*.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Last Modified",
-                    "column_order": 1,
-                    "data_path": "action_result.data.*.data.emailAddress.*.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "column_name": "Owner Name",
-                    "column_order": 2,
-                    "data_path": "action_result.data.*.data.emailAddress.*.ownerName",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.emailAddress.*.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.emailAddress.*.webLink",
-                    "data_type": "string",
-                    "column_order": 3,
-                    "column_name": "Web Link"
-                },
-                {
-                    "data_path": "action_result.data.*.data.resultCount",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
-                }
-            ],
-            "parameters": {
-                "email": {
-                    "contains": [
-                        "email"
-                    ],
-                    "data_type": "string",
-                    "description": "Email address",
-                    "order": 0,
-                    "primary": true,
-                    "required": true
-                }
-            },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt Email",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "verbose": "",
-            "versions": "EQ(*)"
+          "data_path": "action_result.data.*.data.emailAddress.description",
+          "data_type": "string"
         },
         {
-            "action": "hunt domain",
-            "description": "Hunt a domain and retrieve available information",
-            "identifier": "hunt_host",
-            "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "url",
-                        "domain"
-                    ],
-                    "data_path": "action_result.parameter.domain",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.*.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Date Added",
-                    "column_order": 0,
-                    "data_path": "action_result.data.*.data.host.*.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.*.description",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "domain"
-                    ],
-                    "data_path": "action_result.data.*.data.host.*.hostName",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.*.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Last Modified",
-                    "column_order": 1,
-                    "data_path": "action_result.data.*.data.host.*.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "column_name": "Owner Name",
-                    "column_order": 2,
-                    "data_path": "action_result.data.*.data.host.*.ownerName",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.host.*.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.host.*.webLink",
-                    "data_type": "string",
-                    "column_order": 3,
-                    "column_name": "Web Link"
-                },
-                {
-                    "data_path": "action_result.data.*.data.resultCount",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
-                }
-            ],
-            "parameters": {
-                "domain": {
-                    "contains": [
-                        "url",
-                        "domain"
-                    ],
-                    "data_type": "string",
-                    "description": "Domain or URL name",
-                    "order": 0,
-                    "primary": true,
-                    "required": true
-                }
-            },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt Domain",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "versions": "EQ(*)"
+          "data_path": "action_result.data.*.data.file.size",
+          "data_type": "numeric"
         },
         {
-            "action": "hunt url",
-            "description": "Hunt a URL and retrieve available information",
-            "identifier": "hunt_url",
-            "output": [
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.parameter.url",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.resultCount",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.*.confidence",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Date Added",
-                    "column_order": 0,
-                    "data_path": "action_result.data.*.data.url.*.dateAdded",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.*.description",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.*.id",
-                    "data_type": "numeric"
-                },
-                {
-                    "column_name": "Last Modified",
-                    "column_order": 1,
-                    "data_path": "action_result.data.*.data.url.*.lastModified",
-                    "data_type": "string"
-                },
-                {
-                    "column_name": "Owner Name",
-                    "column_order": 2,
-                    "data_path": "action_result.data.*.data.url.*.ownerName",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.*.rating",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.*.text",
-                    "data_type": "string",
-                    "contains": [
-                        "url"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.data.url.*.text",
-                    "data_type": "string"
-                },
-                {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_path": "action_result.data.*.data.url.*.webLink",
-                    "data_type": "string",
-                    "column_order": 3,
-                    "column_name": "Web Link"
-                },
-                {
-                    "data_path": "action_result.data.*.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
-                }
-            ],
-            "parameters": {
-                "url": {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_type": "string",
-                    "description": "URL to find",
-                    "order": 0,
-                    "primary": true,
-                    "required": true
-                }
-            },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt Url",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "versions": "EQ(*)"
+          "data_path": "action_result.data.*.data.file.rating",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.confidence",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.description",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.rating",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.confidence",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.description",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.rating",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.confidence",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.description",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.summary",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.parameter.confidence",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.parameter.rating",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.parameter.size",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.id",
+          "data_type": "numeric"
+        },
+        {
+          "contains": [
+            "ip"
+          ],
+          "data_path": "action_result.data.*.data.address.ip",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.owner.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.owner.name",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.owner.type",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.address.webLink",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.owner.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.owner.name",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.owner.type",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "email"
+          ],
+          "data_path": "action_result.data.*.data.emailAddress.address",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.emailAddress.webLink",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.owner.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.owner.name",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.owner.type",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "hash",
+            "sha1"
+          ],
+          "data_path": "action_result.data.*.data.file.sha1",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "hash",
+            "md5"
+          ],
+          "data_path": "action_result.data.*.data.file.md5",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "hash",
+            "sha256"
+          ],
+          "data_path": "action_result.data.*.data.file.sha256",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.file.webLink",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.owner.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.owner.name",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.owner.type",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.webLink",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "domain"
+          ],
+          "data_path": "action_result.data.*.data.host.hostName",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.dnsActive",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.whoisActive",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.text",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.owner.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.owner.name",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.owner.type",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.url.webLink",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.message",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.parameter.dnsActive",
+          "data_type": "boolean"
+        },
+        {
+          "data_path": "action_result.parameter.whoisActive",
+          "data_type": "boolean"
+        },
+        {
+          "contains": [
+            "ip",
+            "ipv6",
+            "email",
+            "hash",
+            "md5",
+            "sha1",
+            "sha256",
+            "domain",
+            "url"
+          ],
+          "data_path": "action_result.parameter.primary_field",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.parameter.attribute_name",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.parameter.attribute_value",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.summary.attribute_added",
+          "data_type": "boolean"
+        },
+        {
+          "data_path": "action_result.summary.indicator_created/updated",
+          "data_type": "boolean"
+        },
+        {
+          "data_path": "summary.total_objects_successful",
+          "data_type": "numeric"
         }
-    ]
+      ],
+      "parameters": {
+        "confidence": {
+          "data_type": "numeric",
+          "description": "Analytic confidence (0 to 100)",
+          "order": 2,
+          "required": false
+        },
+        "dnsActive": {
+          "data_type": "boolean",
+          "description": "Is DNS active",
+          "order": 4,
+          "required": false
+        },
+        "primary_field": {
+          "contains": [
+            "ip",
+            "ipv6",
+            "email",
+            "hash",
+            "md5",
+            "sha1",
+            "sha256",
+            "domain",
+            "url"
+          ],
+          "data_type": "string",
+          "description": "IP, email, file hash, domain, or URL",
+          "order": 0,
+          "required": true,
+          "primary": true
+        },
+        "rating": {
+          "data_type": "numeric",
+          "description": "Indicator rating (0 to 5)",
+          "order": 1,
+          "required": false
+        },
+        "size": {
+          "data_type": "numeric",
+          "description": "Size of file in bytes",
+          "order": 3,
+          "required": false
+        },
+        "whoisActive": {
+          "data_type": "boolean",
+          "description": "Is WHOIS active",
+          "order": 5,
+          "required": false
+        },
+        "attribute_name": {
+          "description": "Name of attribute to add",
+          "data_type": "string",
+          "order": 6,
+          "primary": false,
+          "required": false
+        },
+        "attribute_value": {
+          "description": "Value of attribute being added",
+          "data_type": "string",
+          "order": 7,
+          "primary": false,
+          "required": false
+        }
+      },
+      "read_only": false,
+      "render": {
+        "height": 5,
+        "title": "Post Data",
+        "type": "json",
+        "width": 12
+      },
+      "type": "generic",
+      "versions": "EQ(*)",
+      "verbose": "<p>This action will post an indicator back to the ThreatConnect platform.  The only required field is <b>primary_field</b>.  This parameter can be an IP address, an email, a hash (MD5, SHA-1, or SHA-256), a host name, or a URL.</p><p>This action also allows for one to post multiple hashes into one indicator.  In order to post multiple hashes to one indicator, put all the hashes in the <b>primary_field</b> separated by commas.  An indicator can have a maximum of one MD5, one SHA-1, and one SHA-256 hash.  If multiple hashes of the same type are entered into the primary field, such as multiple MD5 hashes, the last hash will be the only one posted.</P><p>All indicator types can take the optional parameters <b>rating</b> and <b>confidence</b>.  The specialized optional parameters for files and hosts are below:</p>Files<ul><li>size</li></ul>Hosts<ul><li>dnsActive</li><li>whoisActive</li></ul><p>This action also allows for the addition of attributes to the specified indicator that is created.  The attribute will only be created if both the <b>attribute_name</b> and the <b>attribute_value</b> values are populated.  If attempting to write an attribute with a name that does not exist or apply to the indicator's type, the action will fail.  </p><p>The data paths listed below are all the <i>possible</i> data paths, but they will differ based upon the given parameter in <b>primary_field</b>.  The data paths will be of the form <b>action_result.data.*.[Indicator Type].*</b>, where the Indicator Type is the type given to the parameter in <b>primary_field</b>.  All file hashes will have the same Indicator Type.  If one attempts to post an indicator that already exists on ThreatConnect, that indicator will be updated.</p>"
+    },
+    {
+      "action": "hunt ip",
+      "description": "Hunt an IP and retrieve any available information",
+      "identifier": "hunt_ip",
+      "output": [
+        {
+          "data_path": "action_result.data.*.data.address.*.ip",
+          "data_type": "string",
+          "contains": [
+            "ip",
+            "ipv6"
+          ]
+        },
+        {
+          "data_path": "action_result.data.*.data.address.*.rating",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.*.confidence",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.*.description",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.*.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.address.*.ip",
+          "data_type": "string",
+          "contains": [
+            "ip",
+            "ipv6"
+          ]
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.address.*.webLink",
+          "data_type": "string",
+          "column_order": 3,
+          "column_name": "Web Link"
+        },
+        {
+          "column_name": "Date Added",
+          "column_order": 0,
+          "data_path": "action_result.data.*.data.address.*.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Owner Name",
+          "column_order": 2,
+          "data_path": "action_result.data.*.data.address.*.ownerName",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Last Modified",
+          "column_order": 1,
+          "data_path": "action_result.data.*.data.address.*.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.resultCount",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.message",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "contains": [
+            "ip",
+            "ipv6"
+          ],
+          "data_path": "action_result.parameter.ip",
+          "data_type": "string"
+        },
+        {
+          "data_path": "summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "summary.total_objects_successful",
+          "data_type": "numeric"
+        }
+      ],
+      "parameters": {
+        "ip": {
+          "contains": [
+            "ip",
+            "ipv6"
+          ],
+          "data_type": "string",
+          "description": "IP to hunt",
+          "order": 0,
+          "primary": true,
+          "required": true
+        }
+      },
+      "read_only": true,
+      "render": {
+        "height": 5,
+        "title": "Hunt Ip",
+        "type": "table",
+        "width": 12
+      },
+      "type": "investigate",
+      "verbose": "",
+      "versions": "EQ(*)"
+    },
+    {
+      "action": "hunt file",
+      "description": "Hunt a file hash and retrieve available information",
+      "identifier": "hunt_file",
+      "output": [
+        {
+          "data_path": "action_result.data.*.data.file.*.rating",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.*.confidence",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.*.description",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.*.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.file.*.md5",
+          "data_type": "string",
+          "contains": [
+            "md5"
+          ]
+        },
+        {
+          "data_path": "action_result.data.*.data.file.*.sha1",
+          "data_type": "string",
+          "contains": [
+            "sha1"
+          ]
+        },
+        {
+          "data_path": "action_result.data.*.data.file.*.sha256",
+          "data_type": "string",
+          "contains": [
+            "sha256"
+          ]
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.file.*.webLink",
+          "data_type": "string",
+          "column_order": 3,
+          "column_name": "Web Link"
+        },
+        {
+          "column_name": "Date Added",
+          "column_order": 0,
+          "data_path": "action_result.data.*.data.file.*.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Owner Name",
+          "column_order": 2,
+          "data_path": "action_result.data.*.data.file.*.ownerName",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Last Modified",
+          "column_order": 1,
+          "data_path": "action_result.data.*.data.file.*.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.resultCount",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.message",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "contains": [
+            "hash",
+            "md5",
+            "sha1",
+            "sha256"
+          ],
+          "data_path": "action_result.parameter.hash",
+          "data_type": "string"
+        },
+        {
+          "data_path": "summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "summary.total_objects_successful",
+          "data_type": "numeric"
+        }
+      ],
+      "parameters": {
+        "hash": {
+          "contains": [
+            "hash",
+            "md5",
+            "sha1",
+            "sha256"
+          ],
+          "data_type": "string",
+          "description": "File hash (md5, sha1, sha256)",
+          "order": 0,
+          "primary": true,
+          "required": true
+        }
+      },
+      "read_only": true,
+      "render": {
+        "height": 5,
+        "title": "Hunt File",
+        "type": "table",
+        "width": 12
+      },
+      "type": "investigate",
+      "verbose": "",
+      "versions": "EQ(*)"
+    },
+    {
+      "action": "hunt email",
+      "description": "Hunt an email and retrieve available information",
+      "identifier": "hunt_email",
+      "output": [
+        {
+          "data_path": "action_result.data.*.data.emailAddress.*.rating",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.*.confidence",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.*.description",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.resultCount",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.*.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.emailAddress.*.address",
+          "data_type": "string",
+          "contains": [
+            "email"
+          ]
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.emailAddress.*.webLink",
+          "data_type": "string",
+          "column_order": 3,
+          "column_name": "Web Link"
+        },
+        {
+          "column_name": "Date Added",
+          "column_order": 0,
+          "data_path": "action_result.data.*.data.emailAddress.*.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Owner Name",
+          "column_order": 2,
+          "data_path": "action_result.data.*.data.emailAddress.*.ownerName",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Last Modified",
+          "column_order": 1,
+          "data_path": "action_result.data.*.data.emailAddress.*.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.message",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "contains": [
+            "email"
+          ],
+          "data_path": "action_result.parameter.email",
+          "data_type": "string"
+        },
+        {
+          "data_path": "summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "summary.total_objects_successful",
+          "data_type": "numeric"
+        }
+      ],
+      "parameters": {
+        "email": {
+          "contains": [
+            "email"
+          ],
+          "data_type": "string",
+          "description": "Email address",
+          "order": 0,
+          "primary": true,
+          "required": true
+        }
+      },
+      "read_only": true,
+      "render": {
+        "height": 5,
+        "title": "Hunt Email",
+        "type": "table",
+        "width": 12
+      },
+      "type": "investigate",
+      "verbose": "",
+      "versions": "EQ(*)"
+    },
+    {
+      "action": "hunt domain",
+      "description": "Hunt a domain and retrieve available information",
+      "identifier": "hunt_host",
+      "output": [
+        {
+          "data_path": "action_result.data.*.data.host.*.rating",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.*.confidence",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.*.description",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.host.*.id",
+          "data_type": "numeric"
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.host.*.webLink",
+          "data_type": "string",
+          "column_order": 3,
+          "column_name": "Web Link"
+        },
+        {
+          "contains": [
+            "domain"
+          ],
+          "data_path": "action_result.data.*.data.host.*.hostName",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Date Added",
+          "column_order": 0,
+          "data_path": "action_result.data.*.data.host.*.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Owner Name",
+          "column_order": 2,
+          "data_path": "action_result.data.*.data.host.*.ownerName",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Last Modified",
+          "column_order": 1,
+          "data_path": "action_result.data.*.data.host.*.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.resultCount",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.message",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "contains": [
+            "url",
+            "domain"
+          ],
+          "data_path": "action_result.parameter.domain",
+          "data_type": "string"
+        },
+        {
+          "data_path": "summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "summary.total_objects_successful",
+          "data_type": "numeric"
+        }
+      ],
+      "parameters": {
+        "domain": {
+          "contains": [
+            "url",
+            "domain"
+          ],
+          "data_type": "string",
+          "description": "Domain or URL name",
+          "order": 0,
+          "primary": true,
+          "required": true
+        }
+      },
+      "read_only": true,
+      "render": {
+        "height": 5,
+        "title": "Hunt Domain",
+        "type": "table",
+        "width": 12
+      },
+      "type": "investigate",
+      "versions": "EQ(*)"
+    },
+    {
+      "action": "hunt url",
+      "description": "Hunt a URL and retrieve available information",
+      "identifier": "hunt_url",
+      "output": [
+        {
+          "data_path": "action_result.data.*.data.url.*.text",
+          "data_type": "string",
+          "contains": [
+            "url"
+          ]
+        },
+        {
+          "data_path": "action_result.data.*.data.url.*.rating",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.*.confidence",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.*.description",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.*.id",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.data.url.*.text",
+          "data_type": "string"
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.data.*.data.url.*.webLink",
+          "data_type": "string",
+          "column_order": 3,
+          "column_name": "Web Link"
+        },
+        {
+          "column_name": "Date Added",
+          "column_order": 0,
+          "data_path": "action_result.data.*.data.url.*.dateAdded",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Owner Name",
+          "column_order": 2,
+          "data_path": "action_result.data.*.data.url.*.ownerName",
+          "data_type": "string"
+        },
+        {
+          "column_name": "Last Modified",
+          "column_order": 1,
+          "data_path": "action_result.data.*.data.url.*.lastModified",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.data.*.data.resultCount",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "action_result.data.*.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.status",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.message",
+          "data_type": "string"
+        },
+        {
+          "data_path": "action_result.summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "contains": [
+            "url"
+          ],
+          "data_path": "action_result.parameter.url",
+          "data_type": "string"
+        },
+        {
+          "data_path": "summary.total_objects",
+          "data_type": "numeric"
+        },
+        {
+          "data_path": "summary.total_objects_successful",
+          "data_type": "numeric"
+        }
+      ],
+      "parameters": {
+        "url": {
+          "contains": [
+            "url"
+          ],
+          "data_type": "string",
+          "description": "URL to find",
+          "order": 0,
+          "primary": true,
+          "required": true
+        }
+      },
+      "read_only": true,
+      "render": {
+        "height": 5,
+        "title": "Hunt Url",
+        "type": "table",
+        "width": 12
+      },
+      "type": "investigate",
+      "versions": "EQ(*)"
+    }
+  ]
 }
