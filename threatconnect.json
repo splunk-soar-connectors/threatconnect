@@ -5,7 +5,7 @@
     "type": "threat intel",
     "main_module": "threatconnect_connector.pyc",
     "app_version": "1.0.69",
-    "utctime_updated": "2018-01-25T03:07:25.000000Z",
+    "utctime_updated": "2018-01-26T00:50:51.000000Z",
     "product_vendor": "ThreatConnect",
     "product_name": "ThreatConnect",
     "product_version_regex": ".*",
