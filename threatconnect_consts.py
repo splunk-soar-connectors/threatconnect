@@ -1,7 +1,7 @@
 # --
 # File: threatconnect_consts.py
 #
-# Copyright (c) Phantom Cyber Corporation, 2016-2017
+# Copyright (c) Phantom Cyber Corporation, 2016-2018
 #
 # This unpublished material is proprietary to Phantom Cyber.
 # All rights reserved. The methods and
@@ -41,6 +41,7 @@ THREATCONNECT_JSON_HOSTNAME = "host_name"
 THREATCONNECT_JSON_DNSACTIVE = "dnsActive"
 THREATCONNECT_JSON_WHOISACTIVE = "whoisActive"
 THREATCONNECT_JSON_TEXT = "text"
+THREATCONNECT_JSON_OWNER = "owner"
 THREATCONNECT_POST = "post"
 THREATCONNECT_GET = "get"
 THREATCONNECT_PUT = "put"
