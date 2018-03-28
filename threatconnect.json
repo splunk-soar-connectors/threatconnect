@@ -4,16 +4,17 @@
     "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion. ",
     "type": "threat intel",
     "main_module": "threatconnect_connector.pyc",
-    "app_version": "1.0.68",
-    "utctime_updated": "2017-12-19T23:45:35.000000Z",
+    "app_version": "1.0.69",
+    "utctime_updated": "2018-01-26T00:50:51.000000Z",
     "product_vendor": "ThreatConnect",
     "product_name": "ThreatConnect",
     "product_version_regex": ".*",
-    "logo": "threatconnect.png",
+    "logo": "logo_threatconnect.svg",
+    "logo_dark": "logo_threatconnect_dark.svg",
     "min_phantom_version": "3.0.190",
     "publisher": "Phantom",
     "package_name": "phantom_threatconnect",
-    "license": "Copyright (c) Phantom Cyber Corporation 2016-2017",
+    "license": "Copyright (c) Phantom Cyber Corporation, 2016-2018",
     "configuration": {
         "access_id": {
             "data_type": "string",
@@ -252,6 +253,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.data.emailAddress.description",
+                    "data_path": "action_result.data.*.data.address.dateAdded",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.data.address.lastModified",
                     "data_type": "string"
                 },
                 {
