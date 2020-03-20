@@ -1,15 +1,8 @@
-# --
 # File: threatconnect_connector.py
+# Copyright (c) 2016-2020 Splunk Inc.
 #
-# Copyright (c) Phantom Cyber Corporation, 2016-2018
-#
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber.
-# --
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 
 # Phantom imports
 import phantom.app as phantom
@@ -29,7 +22,10 @@ import hashlib
 import base64
 import ipaddr
 from datetime import datetime, timedelta
-from urllib import quote_plus
+try:
+    from urllib import quote_plus
+except:
+    from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
 
 from django.utils.dateparse import parse_datetime
@@ -74,11 +70,11 @@ class ThreatconnectConnector(BaseConnector):
         if not resp_json['status']:
             return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
         elif resp_json['status'] != "Success":
-            return action_result.set_status(phantom.APP_ERROR, "Test connectivity failed", resp_json)
+            return action_result.set_status(phantom.APP_ERROR, "Test Connectivity Failed", resp_json)
 
-        self.save_progress("Test connectivity succeeded")
+        self.save_progress("Test Connectivity Passed")
 
-        return action_result.set_status(phantom.APP_SUCCESS, "Test connectivity succeeded")
+        return action_result.set_status(phantom.APP_SUCCESS, "Test Connectivity Passed")
 
     def _list_owners(self, params):
 
@@ -96,7 +92,7 @@ class ThreatconnectConnector(BaseConnector):
         if not resp_json.get('status'):
             return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
         elif resp_json.get('status') != "Success":
-            return action_result.set_status(phantom.APP_ERROR, "Test connectivity failed", resp_json)
+            return action_result.set_status(phantom.APP_ERROR, "Test Connectivity Failed", resp_json)
 
         self.save_progress("List owners succeeded.")
         action_result.add_data(resp_json)
@@ -683,9 +679,12 @@ class ThreatconnectConnector(BaseConnector):
         # Prepare the signature to be signed by the HMAC
         signature_raw = "{0}:{1}:{2}".format(encoded_url, rtype.upper(), timestamp_nonce)
         # Autograph time
-        signature_hmac = hmac.new(str(secret_key), signature_raw, digestmod=hashlib.sha256).digest()
-        # Formatting ThreatConnect's 'unique' auth field
-        authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac))
+        try:
+            signature_hmac = hmac.new(str(secret_key), signature_raw, digestmod=hashlib.sha256).digest()
+            authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac))
+        except:
+            signature_hmac = hmac.new(secret_key.encode(), signature_raw.encode(), digestmod=hashlib.sha256).digest()
+            authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac).decode())
 
         header = {'Content-Type': 'application/json', 'Timestamp': timestamp_nonce, 'Authorization': authorization}
 
@@ -843,27 +842,55 @@ class ThreatconnectConnector(BaseConnector):
 
 
 if __name__ == '__main__':
-    '''
-    Code that is executed when run in standalone debug mode.  Useful for debugging specific actions, given an action run json
 
-    '''
-    # Debugging imports
     import sys
     import pudb
-
-    # Breakpoint at runtime
+    import argparse
+    import requests
     pudb.set_trace()
-    # The first param when calling is the input json file
+
+    argparser = argparse.ArgumentParser()
+
+    argparser.add_argument('input_test_json', help='Input Test JSON file')
+    argparser.add_argument('-u', '--username', help='username', required=False)
+    argparser.add_argument('-p', '--password', help='password', required=False)
+
+    args = argparser.parse_args()
+    session_id = None
+
+    if (args.username and args.password):
+        login_url = BaseConnector._get_phantom_base_url() + "login"
+        try:
+            print("Accessing the Login page")
+            r = requests.get(login_url, verify=False)
+            csrftoken = r.cookies['csrftoken']
+            data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
+            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
+
+            print("Logging into Platform to get the session id")
+            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            session_id = r2.cookies['sessionid']
+
+        except Exception as e:
+            print(("Unable to get session id from the platform. Error: {0}".format(str(e))))
+            exit(1)
+
+    if (len(sys.argv) < 2):
+        print("No test json specified as input")
+        exit(0)
+
     with open(sys.argv[1]) as f:
-        # Load the input as JSON
-        in_json = json.loads(f.read())
-        print (json.dumps(in_json, indent=' ' * 4))
-        # Create the connector class object
+        in_json = f.read()
+        in_json = json.loads(in_json)
+        print(json.dumps(in_json, indent=4))
+
         connector = ThreatconnectConnector()
-        # Set the member variables
         connector.print_progress_message = True
-        # Call the Base Connector's handle_action to kick off action handling
+
+        if (session_id is not None):
+            in_json['user_session_token'] = session_id
+
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        # Dump the return value
-        print ret_val
+        print(json.dumps(json.loads(ret_val), indent=4))
+
     exit(0)

@@ -1,20 +1,24 @@
 {
     "appid": "0e80d9ba-2bd1-45aa-8654-3ea99f5d1ff7",
     "name": "ThreatConnect",
-    "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion. ",
+    "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion",
     "type": "threat intel",
-    "main_module": "threatconnect_connector.pyc",
-    "app_version": "1.0.72",
+    "main_module": "threatconnect_connector.py",
+    "app_version": "2.0.0",
     "utctime_updated": "2018-12-07T01:24:07.000000Z",
     "product_vendor": "ThreatConnect",
     "product_name": "ThreatConnect",
     "product_version_regex": ".*",
     "logo": "logo_threatconnect.svg",
     "logo_dark": "logo_threatconnect_dark.svg",
-    "min_phantom_version": "3.0.284",
-    "publisher": "Phantom",
+    "min_phantom_version": "4.6.19142",
+    "python_version": "3",
+    "latest_tested_versions": [
+        "Threatconnect API v2 on 3/20/2020"
+    ],
+    "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
-    "license": "Copyright (c) Phantom Cyber Corporation, 2016-2018",
+    "license": "Copyright (c) 2016-2020 Splunk Inc.",
     "configuration": {
         "access_id": {
             "data_type": "string",
@@ -30,7 +34,7 @@
             "required": true
         },
         "secret_key": {
-            "data_type": "string",
+            "data_type": "password",
             "description": "Secret Key",
             "order": 1,
             "required": true
