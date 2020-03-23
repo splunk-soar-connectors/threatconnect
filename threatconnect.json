@@ -1,20 +1,24 @@
 {
     "appid": "0e80d9ba-2bd1-45aa-8654-3ea99f5d1ff7",
     "name": "ThreatConnect",
-    "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion. ",
+    "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion",
     "type": "threat intel",
-    "main_module": "threatconnect_connector.pyc",
-    "app_version": "1.0.72",
+    "main_module": "threatconnect_connector.py",
+    "app_version": "2.0.0",
     "utctime_updated": "2018-12-07T01:24:07.000000Z",
     "product_vendor": "ThreatConnect",
     "product_name": "ThreatConnect",
     "product_version_regex": ".*",
     "logo": "logo_threatconnect.svg",
     "logo_dark": "logo_threatconnect_dark.svg",
-    "min_phantom_version": "3.0.284",
-    "publisher": "Phantom",
+    "min_phantom_version": "4.6.19142",
+    "python_version": "3",
+    "latest_tested_versions": [
+        "Threatconnect API v2 on 3/20/2020"
+    ],
+    "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
-    "license": "Copyright (c) Phantom Cyber Corporation, 2016-2018",
+    "license": "Copyright (c) 2016-2020 Splunk Inc.",
     "configuration": {
         "access_id": {
             "data_type": "string",
@@ -30,7 +34,7 @@
             "required": true
         },
         "secret_key": {
-            "data_type": "string",
+            "data_type": "password",
             "description": "Secret Key",
             "order": 1,
             "required": true
@@ -81,7 +85,7 @@
         },
         {
             "action": "list owners",
-            "description": "List the owners visible with the configured credentials.",
+            "description": "List the owners visible with the configured credentials",
             "identifier": "list_owners",
             "render": {
                 "height": 5,
@@ -92,33 +96,51 @@
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
                 },
                 {
                     "column_name": "Owner ID",
                     "column_order": 1,
                     "data_path": "action_result.data.*.data.owner.*.id",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        423
+                    ]
                 },
                 {
                     "column_name": "Owner Name",
                     "column_order": 0,
                     "data_path": "action_result.data.*.data.owner.*.name",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Splunk"
+                    ]
                 },
                 {
                     "column_name": "Owner Type",
                     "column_order": 2,
                     "data_path": "action_result.data.*.data.owner.*.type",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Organization"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.data.resultCount",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        16
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Success"
+                    ]
                 },
                 {
                     "data_path": "action_result.summary.total_objects",
@@ -126,7 +148,31 @@
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "List owners succeeded"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.num_owners",
+                    "data_type": "numeric",
+                    "example_values": [
+                        16
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "parameters": {},
@@ -141,7 +187,10 @@
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.attribute_name",
@@ -172,7 +221,10 @@
                         "url"
                     ],
                     "data_path": "action_result.parameter.primary_field",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "80f7be8806019283777fdeed1ab09c4c"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.rating",
@@ -256,10 +308,6 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.data.*.data.address.lastModified",
-                    "data_type": "string"
-                },
-                {
                     "data_path": "action_result.data.*.data.emailAddress.id",
                     "data_type": "numeric"
                 },
@@ -296,7 +344,10 @@
                 },
                 {
                     "data_path": "action_result.data.*.data.file.dateAdded",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-03-20T21:29:05Z"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.data.file.description",
@@ -304,11 +355,17 @@
                 },
                 {
                     "data_path": "action_result.data.*.data.file.id",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        111349508
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.data.file.lastModified",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-03-20T21:29:05Z"
+                    ]
                 },
                 {
                     "contains": [
@@ -316,19 +373,31 @@
                         "md5"
                     ],
                     "data_path": "action_result.data.*.data.file.md5",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "80F7BE8806019283777FDEED1AB09C4C"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.data.file.owner.id",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        423
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.data.file.owner.name",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Splunk"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.data.file.owner.type",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Organization"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.data.file.rating",
@@ -359,7 +428,10 @@
                         "url"
                     ],
                     "data_path": "action_result.data.*.data.file.webLink",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "https://sandbox.threatconnect.com/auth/indicators/details/file.xhtml?file=80F7BE8806019283777FDEED1AB09C4C&owner=Splunk"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.data.host.confidence",
@@ -465,7 +537,10 @@
                 },
                 {
                     "data_path": "action_result.data.*.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Success"
+                    ]
                 },
                 {
                     "data_path": "action_result.summary",
@@ -473,23 +548,47 @@
                 },
                 {
                     "data_path": "action_result.summary.attribute_added",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
+                    ]
                 },
                 {
                     "data_path": "action_result.summary.indicator_created/updated",
-                    "data_type": "boolean"
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
+                    ]
                 },
                 {
                     "data_path": "action_result.summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Data successfully posted to ThreatConnect"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "parameters": {
