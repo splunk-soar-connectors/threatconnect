@@ -116,7 +116,7 @@
                     "data_path": "action_result.data.*.data.owner.*.name",
                     "data_type": "string",
                     "example_values": [
-                        "Phantom Cyber"
+                        "Splunk"
                     ]
                 },
                 {
@@ -389,7 +389,7 @@
                     "data_path": "action_result.data.*.data.file.owner.name",
                     "data_type": "string",
                     "example_values": [
-                        "Phantom Cyber"
+                        "Splunk"
                     ]
                 },
                 {
@@ -430,7 +430,7 @@
                     "data_path": "action_result.data.*.data.file.webLink",
                     "data_type": "string",
                     "example_values": [
-                        "https://sandbox.threatconnect.com/auth/indicators/details/file.xhtml?file=80F7BE8806019283777FDEED1AB09C4C&owner=Phantom+Cyber"
+                        "https://sandbox.threatconnect.com/auth/indicators/details/file.xhtml?file=80F7BE8806019283777FDEED1AB09C4C&owner=Splunk"
                     ]
                 },
                 {

@@ -872,7 +872,7 @@ if __name__ == '__main__':
             session_id = r2.cookies['sessionid']
 
         except Exception as e:
-            print(("Unable to get session id from the platform. Error: {0}".format(str(e))))
+            print("Unable to get session id from the platform. Error: {0}".format(str(e)))
             exit(1)
 
     if (len(sys.argv) < 2):
