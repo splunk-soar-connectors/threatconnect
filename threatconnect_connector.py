@@ -20,7 +20,10 @@ from requests import Request
 import time
 import hashlib
 import base64
-import ipaddr
+try:
+    import ipaddr
+except:
+    import ipaddress
 from datetime import datetime, timedelta
 try:
     from urllib import quote_plus
@@ -135,8 +138,12 @@ class ThreatconnectConnector(BaseConnector):
         if (params.get(THREATCONNECT_JSON_IP, None)):
             indicator_to_hunt = params[THREATCONNECT_JSON_IP]
             try:
-                ipaddr.IPAddress(indicator_to_hunt)
-                endpoint = THREATCONNECT_ENDPOINT_ADDRESS
+                try:
+                    ipaddr.IPAddress(indicator_to_hunt)
+                    endpoint = THREATCONNECT_ENDPOINT_ADDRESS
+                except NameError:
+                    ipaddress.ip_address(indicator_to_hunt)
+                    endpoint = THREATCONNECT_ENDPOINT_ADDRESS
             except ValueError:
                 return action_result.set_status(phantom.APP_ERROR, "Parameter 'ip' failed validation")
         elif (params.get(THREATCONNECT_JSON_FILE, None)):
@@ -610,8 +617,12 @@ class ThreatconnectConnector(BaseConnector):
         """ Returns two Values, use RetVal """
 
         try:
-            ipaddr.IPAddress(primary_field)
-            return RetVal('ip', THREATCONNECT_ENDPOINT_ADDRESS)
+            try:
+                ipaddr.IPAddress(primary_field)
+                return RetVal('ip', THREATCONNECT_ENDPOINT_ADDRESS)
+            except NameError:
+                ipaddress.ip_address(primary_field)
+                return RetVal('ip', THREATCONNECT_ENDPOINT_ADDRESS)
         except ValueError:
             if (phantom.is_email(primary_field)):
                 return RetVal('address', THREATCONNECT_ENDPOINT_EMAIL)
@@ -656,8 +667,11 @@ class ThreatconnectConnector(BaseConnector):
         elif (phantom.is_ip(summary)):
             return "IP Artifact", "deviceAddress", "ip"
         try:
-            # Check for IPV6
-            ipaddr.IPAddress(summary)
+            try:
+                # Check for IPV6
+                ipaddr.IPAddress(summary)
+            except NameError:
+                ipaddress.ip_address(summary)
             return "IP Artifact", "deviceCustomIPv6Address1", "ipv6"
         except:
             if (phantom.is_domain(summary)):
