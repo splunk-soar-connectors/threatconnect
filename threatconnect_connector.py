@@ -57,6 +57,20 @@ class ThreatconnectConnector(BaseConnector):
         super(ThreatconnectConnector, self).__init__()
         self._state = {}
 
+    def is_positive_int(self, value):
+        try:
+            value = int(value)
+            return True if value >= 0 else False
+        except Exception:
+            return False
+
+    def is_positive_non_zero_int(self, value):
+        try:
+            value = int(value)
+            return True if value > 0 else False
+        except Exception:
+            return False
+
     def _test_connectivity(self, params):
 
         action_result = self.add_action_result(ActionResult(params))
@@ -95,7 +109,7 @@ class ThreatconnectConnector(BaseConnector):
         if not resp_json.get('status'):
             return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
         elif resp_json.get('status') != "Success":
-            return action_result.set_status(phantom.APP_ERROR, "Test Connectivity Failed", resp_json)
+            return action_result.set_status(phantom.APP_ERROR, "Unable to List Owners", resp_json)
 
         self.save_progress("List owners succeeded.")
         action_result.add_data(resp_json)
@@ -115,7 +129,7 @@ class ThreatconnectConnector(BaseConnector):
             "displayed": True
         }
 
-        ret_val, response = self._make_rest_call(action_result, endpoint, body=kwargs, rtype="POST")
+        ret_val, response = self._make_rest_call(action_result, endpoint, body=kwargs, rtype="post")
 
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
@@ -262,6 +276,8 @@ class ThreatconnectConnector(BaseConnector):
         kwargs['confidence'] = params.get(THREATCONNECT_JSON_CONFIDENCE, None)
         if (endpoint == THREATCONNECT_ENDPOINT_FILE):
             kwargs['size'] = params.get(THREATCONNECT_JSON_SIZE, None)
+            if not (kwargs['size'] is None or self.is_positive_int(kwargs['size'])):
+                return action_result.set_status(phantom.APP_ERROR, 'Please provide a positive integer in size')
             if files:
                 kwargs.update(files)
         elif (endpoint == THREATCONNECT_ENDPOINT_HOST):
@@ -779,8 +795,10 @@ class ThreatconnectConnector(BaseConnector):
 
         config = self.get_config()
 
-        headers = self._create_header(endpoint, params=params, rtype=rtype, json=body)
-
+        try:
+            headers = self._create_header(endpoint, params=params, rtype=rtype, json=body)
+        except Exception as e:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
         try:
             request_func = getattr(requests, rtype)
         except AttributeError:
@@ -816,6 +834,14 @@ class ThreatconnectConnector(BaseConnector):
         self._state = self.load_state()
         config = self.get_config()
         config[THREATCONNECT_BASE_URL] = config[THREATCONNECT_BASE_URL].rstrip('/')
+
+        max_containers = config.get("max_containers", None)
+        if not (max_containers is None or self.is_positive_non_zero_int(max_containers)):
+            return self.set_status(phantom.APP_ERROR, 'Please provide a positive, non zero integer in config parameter "max_containers"')
+
+        interval_days = config.get("interval_days", None)
+        if not (interval_days is None or self.is_positive_non_zero_int(interval_days)):
+            return self.set_status(phantom.APP_ERROR, 'Please provide a positive, non zero integer in config parameter "interval_days"')
 
         return phantom.APP_SUCCESS
 
@@ -860,7 +886,6 @@ if __name__ == '__main__':
     import sys
     import pudb
     import argparse
-    import requests
     pudb.set_trace()
 
     argparser = argparse.ArgumentParser()
