@@ -11,10 +11,10 @@
     "product_version_regex": ".*",
     "logo": "logo_threatconnect.svg",
     "logo_dark": "logo_threatconnect_dark.svg",
-    "min_phantom_version": "4.6.19142",
+    "min_phantom_version": "4.9.39220",
     "python_version": "3",
     "latest_tested_versions": [
-        "Threatconnect API v2 on 3/24/2020"
+        "Threatconnect API v2 on 12/22/2020"
     ],
     "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
@@ -23,48 +23,45 @@
         "access_id": {
             "data_type": "string",
             "description": "Access ID",
-            "order": 0,
+            "order": 2,
             "required": true
         },
         "base_url": {
             "data_type": "string",
             "description": "Base URL for instance (e.g. https://api.threatconnect.com)",
             "default": "https://api.threatconnect.com",
-            "order": 2,
+            "order": 0,
             "required": true
         },
         "secret_key": {
             "data_type": "password",
             "description": "Secret Key",
-            "order": 1,
+            "order": 3,
             "required": true
         },
         "max_containers": {
             "data_type": "numeric",
             "description": "Max containers per poll",
-            "order": 3,
-            "required": false,
+            "order": 5,
             "default": 100
         },
         "interval_days": {
             "data_type": "numeric",
             "order": 4,
-            "description": "Last 'N' Days to get data of during 'Poll Now' and scheduled polling",
-            "default": "7",
-            "required": false
+            "description": "Last 'N' Days to get data during 'Poll Now' and scheduled polling",
+            "default": "7"
         },
         "verify_server_cert": {
             "data_type": "boolean",
-            "order": 5,
-            "description": "Verify server cert",
-            "required": false
+            "order": 1,
+            "description": "Verify server cert"
         }
     },
     "actions": [
         {
             "action": "on poll",
             "description": "Callback action for the on_poll ingest functionality",
-            "verbose": "<p>Basic polling configuration is available within the asset configuration.  <b>On_poll</b>'s maximum ingested indicators is, by default, 100.  This can be found in the asset configuration under <b>max_containers</b>.  The other optional parameter in the asset configuration, <b>num_of_days</b>, specifies how old to start polling from during the first ingestion cycle.  The default value is 7 days.  This <b>num_of_days</b> parameter also affects when Poll Now starts polling as well.</p><p>This action will start from the oldest indicator and create a container for each.</p><p>The following CEF fields will be created, depending upon the IOC type:</p><table><tr><th>IOC</th><th>Artifact Name</th><th>CEF Field</th></tr><tr><td>Address IPv4</td><td>IP Artifact</td><td>deviceAddress</td></tr><tr><td>Address IPv6</td><td>IP Artifact</td><td>deviceCustomIPv6Address1</td></tr><tr><td>Email</td><td>Email Address Artifact</td><td>emailAddress</td></tr><tr><td>File</td><td>File Artifact</td><td>fileHashMd5, fileHashSha1, fileHashSha256 (where applicable)</td></tr><tr><td>Host</td><td>Domain Artifact</td><td>DeviceDnsDomain</td></tr><tr><td>URL</td><td>URL Artifact</td><td>requestURL</td></tr><tr><td>CIDR IPv4</td><td>CIDR Artifact</td><td>deviceAddress (IP), cidrPrefix, cidr (CIDR)</td></tr><tr><td>Mutex</td><td>Mutex Artifact</td><td>mutex</td></tr><tr><td>Registry Key</td><td>Registry Key Artifact</td><td>registryKey (Registry Key Name), registryValue (Value Name), registryType (Value Type)</td></tr><tr><td>ASN</td><td>ASN Artifact</td><td>asn</td></tr><tr><td>User Agent</td><td>User Agent Artifact</td><td>requestClientApplication</td></tr></table><p>Additional CEF fields that all artifacts will have are:</p><table><tr><th>CEF Field</th><th>Description</th></tr><tr><td>deviceCustomDate1</td><td>Date Created</td></tr><tr><td>deviceCustomDate1Label</td><td>Label for above</td></tr><tr><td>deviceCustomDate2</td><td>Last Modified Date</td></tr><tr><td>deviceCustomDate2Label</td><td>Label for above</td></tr><tr><td>rating</td><td>Indicator rating</td></tr><tr><td>confidence</td><td>Indicator confidence</td></tr><tr><td>threatAssessRating</td><td>Threat Assessment rating</td></tr><tr><td>threatAssessConfidence</td><td>Threat Assessment Confidence</td></tr></table><p>Rating, confidence, threatAssessRating, and threatAssessConfidence will only be added if they are present within the indicator.</p><p>Any indicator that does not fall within any of the categories above is considered a custom indicator, and, as a result, will have a CEF field of 'cn1'.</p><p>It is also very important that the Maximum Container for scheduled polling configured should be greater than maximum events that are generated per second. If the app detects it got the maximum configured events and all occurred in the same second, it will start polling from the next second in the next polling cycle.</p>",
+            "verbose": "<p>Basic polling configuration is available within the asset configuration.  <b>On_poll</b>'s maximum ingested indicators is, by default, 100.  This can be found in the asset configuration under <b>max_containers</b>.  The other optional parameter in the asset configuration, <b>num_of_days</b>, specifies how old to start polling from during the first ingestion cycle.  The default value is 7 days.  This <b>num_of_days</b> parameter also affects when the Poll Now starts polling as well.</p><p>This action will start from the oldest indicator and create a container for each.</p><p>The following CEF fields will be created, depending upon the IOC type:</p><table><tr><th>IOC</th><th>Artifact Name</th><th>CEF Field</th></tr><tr><td>Address IPv4</td><td>IP Artifact</td><td>deviceAddress</td></tr><tr><td>Address IPv6</td><td>IP Artifact</td><td>deviceCustomIPv6Address1</td></tr><tr><td>Email</td><td>Email Address Artifact</td><td>emailAddress</td></tr><tr><td>File</td><td>File Artifact</td><td>fileHashMd5, fileHashSha1, fileHashSha256 (where applicable)</td></tr><tr><td>Host</td><td>Domain Artifact</td><td>DeviceDnsDomain</td></tr><tr><td>URL</td><td>URL Artifact</td><td>requestURL</td></tr><tr><td>CIDR IPv4</td><td>CIDR Artifact</td><td>deviceAddress (IP), cidrPrefix, cidr (CIDR)</td></tr><tr><td>Mutex</td><td>Mutex Artifact</td><td>mutex</td></tr><tr><td>Registry Key</td><td>Registry Key Artifact</td><td>registryKey (Registry Key Name), registryValue (Value Name), registryType (Value Type)</td></tr><tr><td>ASN</td><td>ASN Artifact</td><td>asn</td></tr><tr><td>User Agent</td><td>User Agent Artifact</td><td>requestClientApplication</td></tr></table><p>Additional CEF fields that all artifacts will have are:</p><table><tr><th>CEF Field</th><th>Description</th></tr><tr><td>deviceCustomDate1</td><td>Date Created</td></tr><tr><td>deviceCustomDate1Label</td><td>Label for above</td></tr><tr><td>deviceCustomDate2</td><td>Last Modified Date</td></tr><tr><td>deviceCustomDate2Label</td><td>Label for above</td></tr><tr><td>rating</td><td>Indicator rating</td></tr><tr><td>confidence</td><td>Indicator confidence</td></tr><tr><td>threatAssessRating</td><td>Threat Assessment rating</td></tr><tr><td>threatAssessConfidence</td><td>Threat Assessment Confidence</td></tr></table><p>Rating, confidence, threatAssessRating, and threatAssessConfidence will only be added if they are present within the indicator.</p><p>Any indicator that does not fall within any of the categories above is considered a custom indicator, and, as a result, will have a CEF field of 'cn1'.</p><p>It is also very important that the Maximum Container for scheduled polling configured should be greater than the maximum events that are generated per second. If the app detects it got the maximum configured events and all occurred in the same second, it will start polling from the next second in the next polling cycle.</p>",
             "identifier": "on_poll",
             "output": [],
             "parameters": {},
@@ -98,7 +95,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -143,6 +141,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.summary.num_owners",
+                    "data_type": "numeric",
+                    "example_values": [
+                        16
+                    ]
+                },
+                {
                     "data_path": "action_result.summary.total_objects",
                     "data_type": "numeric"
                 },
@@ -151,13 +156,6 @@
                     "data_type": "string",
                     "example_values": [
                         "List owners succeeded"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.num_owners",
-                    "data_type": "numeric",
-                    "example_values": [
-                        16
                     ]
                 },
                 {
@@ -189,7 +187,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -205,7 +204,7 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.parameter.dnsActive",
+                    "data_path": "action_result.parameter.dns_active",
                     "data_type": "boolean"
                 },
                 {
@@ -235,7 +234,7 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.parameter.whoisActive",
+                    "data_path": "action_result.parameter.whois_active",
                     "data_type": "boolean"
                 },
                 {
@@ -446,7 +445,7 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.data.*.data.host.dnsActive",
+                    "data_path": "action_result.data.*.data.host.dns_active",
                     "data_type": "string"
                 },
                 {
@@ -485,7 +484,7 @@
                     "data_type": "string"
                 },
                 {
-                    "data_path": "action_result.data.*.data.host.whoisActive",
+                    "data_path": "action_result.data.*.data.host.whois_active",
                     "data_type": "string"
                 },
                 {
@@ -577,14 +576,14 @@
                     ]
                 },
                 {
-                    "data_path": "summary.total_objects_successful",
+                    "data_path": "summary.total_objects",
                     "data_type": "numeric",
                     "example_values": [
                         1
                     ]
                 },
                 {
-                    "data_path": "summary.total_objects",
+                    "data_path": "summary.total_objects_successful",
                     "data_type": "numeric",
                     "example_values": [
                         1
@@ -595,14 +594,12 @@
                 "confidence": {
                     "data_type": "numeric",
                     "description": "Analytic confidence (0 to 100)",
-                    "order": 2,
-                    "required": false
+                    "order": 2
                 },
-                "dnsActive": {
+                "dns_active": {
                     "data_type": "boolean",
                     "description": "Is DNS active",
-                    "order": 4,
-                    "required": false
+                    "order": 4
                 },
                 "primary_field": {
                     "contains": [
@@ -625,34 +622,27 @@
                 "rating": {
                     "data_type": "numeric",
                     "description": "Indicator rating (0 to 5)",
-                    "order": 1,
-                    "required": false
+                    "order": 1
                 },
                 "size": {
                     "data_type": "numeric",
                     "description": "Size of file in bytes",
-                    "order": 3,
-                    "required": false
+                    "order": 3
                 },
-                "whoisActive": {
+                "whois_active": {
                     "data_type": "boolean",
                     "description": "Is WHOIS active",
-                    "order": 5,
-                    "required": false
+                    "order": 5
                 },
                 "attribute_name": {
                     "description": "Name of attribute to add",
                     "data_type": "string",
-                    "order": 6,
-                    "primary": false,
-                    "required": false
+                    "order": 6
                 },
                 "attribute_value": {
                     "description": "Value of attribute being added",
                     "data_type": "string",
-                    "order": 7,
-                    "primary": false,
-                    "required": false
+                    "order": 7
                 }
             },
             "read_only": false,
@@ -664,7 +654,7 @@
             },
             "type": "generic",
             "versions": "EQ(*)",
-            "verbose": "<p>This action will post an indicator back to the ThreatConnect platform.  The only required field is <b>primary_field</b>.  This parameter can be an IP address, an email, a hash (MD5, SHA-1, or SHA-256), a host name, or a URL.</p><p>This action also allows for one to post multiple hashes into one indicator.  In order to post multiple hashes to one indicator, put all the hashes in the <b>primary_field</b> separated by commas.  An indicator can have a maximum of one MD5, one SHA-1, and one SHA-256 hash.  If multiple hashes of the same type are entered into the primary field, such as multiple MD5 hashes, the last hash will be the only one posted.</P><p>All indicator types can take the optional parameters <b>rating</b> and <b>confidence</b>.  The specialized optional parameters for files and hosts are below:</p>Files<ul><li>size</li></ul>Hosts<ul><li>dnsActive</li><li>whoisActive</li></ul><p>This action also allows for the addition of attributes to the specified indicator that is created.  The attribute will only be created if both the <b>attribute_name</b> and the <b>attribute_value</b> values are populated.  If attempting to write an attribute with a name that does not exist or apply to the indicator's type, the action will fail.  </p><p>The data paths listed below are all the <i>possible</i> data paths, but they will differ based upon the given parameter in <b>primary_field</b>.  The data paths will be of the form <b>action_result.data.*.[Indicator Type].*</b>, where the Indicator Type is the type given to the parameter in <b>primary_field</b>.  All file hashes will have the same Indicator Type.  If one attempts to post an indicator that already exists on ThreatConnect, that indicator will be updated.</p>"
+            "verbose": "<p>This action will post an indicator back to the ThreatConnect platform.  The only required field is <b>primary_field</b>.  This parameter can be an IP address, an email, a hash (MD5, SHA-1, or SHA-256), a hostname, or a URL.</p><p>This action also allows for one to post multiple hashes into one indicator.  To post multiple hashes to one indicator, put all the hashes in the <b>primary_field</b> separated by commas.  An indicator can have a maximum of one MD5, one SHA-1, and one SHA-256 hash.  If multiple hashes of the same type are entered into the primary field, such as multiple MD5 hashes, the last hash will be the only one posted.</P><p>All indicator types can take the optional parameters <b>rating</b> and <b>confidence</b>.  The specialized optional parameters for files and hosts are below:</p>Files<ul><li>size</li></ul>Hosts<ul><li>dns_active</li><li>whois_active</li></ul><p>This action also allows for the addition of attributes to the specified indicator that is created.  The attribute will only be created if both the <b>attribute_name</b> and the <b>attribute_value</b> values are populated.  If attempting to write an attribute with a name that does not exist or apply to the indicator's type, the action will fail.  </p><p>The data paths listed below are all the <i>possible</i> data paths, but they will differ based upon the given parameter in <b>primary_field</b>.  The data paths will be of the form of <b>action_result.data.*.[Indicator Type].*</b>, where the Indicator Type is the type given to the parameter in <b>primary_field</b>.  All file hashes will have the same Indicator Type.  If one attempts to post an indicator that already exists on ThreatConnect, that indicator will be updated.</p>"
         },
         {
             "action": "hunt ip",
@@ -673,7 +663,11 @@
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "contains": [
@@ -792,8 +786,7 @@
                 "owner": {
                     "data_type": "string",
                     "description": "Indicator Owner within ThreatConnect",
-                    "order": 1,
-                    "required": false
+                    "order": 1
                 }
             },
             "read_only": true,
@@ -804,7 +797,6 @@
                 "width": 12
             },
             "type": "investigate",
-            "verbose": "",
             "versions": "EQ(*)"
         },
         {
@@ -814,7 +806,11 @@
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "contains": [
@@ -940,8 +936,7 @@
                 "owner": {
                     "data_type": "string",
                     "description": "Indicator Owner within ThreatConnect",
-                    "order": 1,
-                    "required": false
+                    "order": 1
                 }
             },
             "read_only": true,
@@ -952,7 +947,6 @@
                 "width": 12
             },
             "type": "investigate",
-            "verbose": "",
             "versions": "EQ(*)"
         },
         {
@@ -962,7 +956,11 @@
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "contains": [
@@ -984,7 +982,9 @@
                 },
                 {
                     "data_path": "action_result.data.*.data.emailAddress.*.confidence",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "column_name": "Confidence",
+                    "column_order": 3
                 },
                 {
                     "column_name": "Date Added",
@@ -1008,13 +1008,15 @@
                 },
                 {
                     "column_name": "Owner Name",
-                    "column_order": 2,
+                    "column_order": 4,
                     "data_path": "action_result.data.*.data.emailAddress.*.ownerName",
                     "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.data.emailAddress.*.rating",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "column_name": "Rating",
+                    "column_order": 2
                 },
                 {
                     "contains": [
@@ -1022,7 +1024,7 @@
                     ],
                     "data_path": "action_result.data.*.data.emailAddress.*.webLink",
                     "data_type": "string",
-                    "column_order": 3,
+                    "column_order": 5,
                     "column_name": "Web Link"
                 },
                 {
@@ -1064,8 +1066,7 @@
                 "owner": {
                     "data_type": "string",
                     "description": "Indicator Owner within ThreatConnect",
-                    "order": 1,
-                    "required": false
+                    "order": 1
                 }
             },
             "read_only": true,
@@ -1076,7 +1077,6 @@
                 "width": 12
             },
             "type": "investigate",
-            "verbose": "",
             "versions": "EQ(*)"
         },
         {
@@ -1086,7 +1086,11 @@
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "contains": [
@@ -1196,8 +1200,7 @@
                 "owner": {
                     "data_type": "string",
                     "description": "Indicator Owner within ThreatConnect",
-                    "order": 1,
-                    "required": false
+                    "order": 1
                 }
             },
             "read_only": true,
@@ -1217,7 +1220,11 @@
             "output": [
                 {
                     "data_path": "action_result.status",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.owner",
@@ -1329,8 +1336,7 @@
                 "owner": {
                     "data_type": "string",
                     "description": "Indicator Owner within ThreatConnect",
-                    "order": 1,
-                    "required": false
+                    "order": 1
                 }
             },
             "read_only": true,
