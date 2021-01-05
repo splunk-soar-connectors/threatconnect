@@ -1,15 +1,8 @@
-# --
 # File: threatconnect_connector.py
+# Copyright (c) 2016-2021 Splunk Inc.
 #
-# Copyright (c) Phantom Cyber Corporation, 2016-2018
-#
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber.
-# --
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 
 # Phantom imports
 import phantom.app as phantom
@@ -27,10 +20,18 @@ from requests import Request
 import time
 import hashlib
 import base64
-import ipaddr
+try:
+    import ipaddr
+except:
+    import ipaddress
 from datetime import datetime, timedelta
-from urllib import quote_plus
+try:
+    from urllib import quote_plus
+except:
+    from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
+
+from django.utils.dateparse import parse_datetime
 
 
 class RetVal(tuple):
@@ -46,6 +47,7 @@ class ThreatconnectConnector(BaseConnector):
     ACTION_ID_HUNT_URL = "hunt_url"
     ACTION_ID_HUNT_EMAIL = "hunt_email"
     ACTION_ID_HUNT_IP = "hunt_ip"
+    ACTION_ID_LIST_OWNERS = "list_owners"
     ACTION_ID_POST_DATA = "post_data"
     ACTION_ID_ON_POLL = "on_poll"
     TEST_ASSET_CONNECTIVITY = "test_asset_connectivity"
@@ -54,6 +56,20 @@ class ThreatconnectConnector(BaseConnector):
 
         super(ThreatconnectConnector, self).__init__()
         self._state = {}
+
+    def is_positive_int(self, value):
+        try:
+            value = int(value)
+            return True if value >= 0 else False
+        except Exception:
+            return False
+
+    def is_positive_non_zero_int(self, value):
+        try:
+            value = int(value)
+            return True if value > 0 else False
+        except Exception:
+            return False
 
     def _test_connectivity(self, params):
 
@@ -71,11 +87,36 @@ class ThreatconnectConnector(BaseConnector):
         if not resp_json['status']:
             return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
         elif resp_json['status'] != "Success":
-            return action_result.set_status(phantom.APP_ERROR, "Test connectivity failed", resp_json)
+            return action_result.set_status(phantom.APP_ERROR, "Test Connectivity Failed", resp_json)
 
-        self.save_progress("Test connectivity succeeded")
+        self.save_progress("Test Connectivity Passed")
 
-        return action_result.set_status(phantom.APP_SUCCESS, "Test connectivity succeeded")
+        return action_result.set_status(phantom.APP_SUCCESS, "Test Connectivity Passed")
+
+    def _list_owners(self, params):
+
+        action_result = self.add_action_result(ActionResult(params))
+
+        self.save_progress("Using base url: {0}".format(self._get_url()))
+
+        self.save_progress("Requesting a list of all owners visible to this user...")
+
+        ret_val, resp_json = self._make_rest_call(action_result, THREATCONNECT_ENDPOINT_TEST)
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        if not resp_json.get('status'):
+            return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
+        elif resp_json.get('status') != "Success":
+            return action_result.set_status(phantom.APP_ERROR, "Unable to List Owners", resp_json)
+
+        self.save_progress("List owners succeeded.")
+        action_result.add_data(resp_json)
+        total_objects = int(resp_json['data']['resultCount'])
+        action_result.set_summary({"num_owners": total_objects})
+
+        return action_result.set_status(phantom.APP_SUCCESS, "List owners succeeded")
 
     def _add_attribute(self, action_result, attribute_name, attribute_value, indicator_summary, indicator_type):
 
@@ -88,7 +129,7 @@ class ThreatconnectConnector(BaseConnector):
             "displayed": True
         }
 
-        ret_val, response = self._make_rest_call(action_result, endpoint, body=kwargs, rtype="POST")
+        ret_val, response = self._make_rest_call(action_result, endpoint, body=kwargs, rtype="post")
 
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
@@ -111,8 +152,12 @@ class ThreatconnectConnector(BaseConnector):
         if (params.get(THREATCONNECT_JSON_IP, None)):
             indicator_to_hunt = params[THREATCONNECT_JSON_IP]
             try:
-                ipaddr.IPAddress(indicator_to_hunt)
-                endpoint = THREATCONNECT_ENDPOINT_ADDRESS
+                try:
+                    ipaddr.IPAddress(indicator_to_hunt)
+                    endpoint = THREATCONNECT_ENDPOINT_ADDRESS
+                except NameError:
+                    ipaddress.ip_address(indicator_to_hunt)
+                    endpoint = THREATCONNECT_ENDPOINT_ADDRESS
             except ValueError:
                 return action_result.set_status(phantom.APP_ERROR, "Parameter 'ip' failed validation")
         elif (params.get(THREATCONNECT_JSON_FILE, None)):
@@ -140,23 +185,55 @@ class ThreatconnectConnector(BaseConnector):
         # Encodes any fishy values...  ESPECIALLY THAT PESKY PLUS SIGN
         indicator_to_hunt = quote_plus(indicator_to_hunt)
 
-        # Dumping the string causes quotes to show up and neither me or ThreatConnect likes that
-        kwargs = json.dumps('filters=summary=' + indicator_to_hunt).replace('"', "")
-
         endpoint_uri = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + endpoint
 
-        # Make the rest call
-        ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
+        if (params.get(THREATCONNECT_JSON_OWNER, None)):
+            owners_list = []
+            owners = params.get(THREATCONNECT_JSON_OWNER, None)
 
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
+            # First work on the comma as the seperator
+            if type(owners) is list:
+                owners_list = owners
+            elif (',' in owners):
+                owners_list = owners.split(',')
+            elif(';' in owners):
+                owners_list = owners.split(';')
+            else:
+                owners_list.append(owners)
 
-        if (response['status'] == THREATCONNECT_STATUS_FAILURE):
-            return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
+            total_objects = 0
+            for owner in owners_list:
+                owner = quote_plus(owner)
+                kwargs = json.dumps('filters=summary=' + indicator_to_hunt + '&owner=' + owner).replace('"', "")
+                # Make the rest call
+                ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
 
-        action_result.add_data(response)
+                if (phantom.is_fail(ret_val)):
+                    return action_result.get_status()
 
-        action_result.set_summary({"total_objects": response['data']['resultCount']})
+                if (response['status'] == THREATCONNECT_STATUS_FAILURE):
+                    return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
+
+                action_result.add_data(response)
+                total_objects += int(response['data']['resultCount'])
+
+            action_result.set_summary({"total_objects": total_objects})
+
+        else:
+            # Dumping the string causes quotes to show up and neither me or ThreatConnect likes that
+            kwargs = json.dumps('filters=summary=' + indicator_to_hunt).replace('"', "")
+
+            # Make the rest call
+            ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+            if (response['status'] == THREATCONNECT_STATUS_FAILURE):
+                return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
+
+            action_result.add_data(response)
+            action_result.set_summary({"total_objects": response['data']['resultCount']})
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -199,6 +276,8 @@ class ThreatconnectConnector(BaseConnector):
         kwargs['confidence'] = params.get(THREATCONNECT_JSON_CONFIDENCE, None)
         if (endpoint == THREATCONNECT_ENDPOINT_FILE):
             kwargs['size'] = params.get(THREATCONNECT_JSON_SIZE, None)
+            if not (kwargs['size'] is None or self.is_positive_int(kwargs['size'])):
+                return action_result.set_status(phantom.APP_ERROR, 'Please provide a positive integer in size')
             if files:
                 kwargs.update(files)
         elif (endpoint == THREATCONNECT_ENDPOINT_HOST):
@@ -321,13 +400,14 @@ class ThreatconnectConnector(BaseConnector):
         possible_indicators = []
 
         # Convert the start_time determined by on_poll to UNIX timestamp to compare to the indicator
-        start_time_unix = int(datetime.strptime(start_time, DATETIME_FORMAT).strftime("%s"))
+        start_time_unix = int(parse_datetime(start_time).strftime("%s"))
 
         # Iterate through all the indicators starting at the top of the list (which should be most recent)
         for indicator in resp_json['data']['indicator']:
+            indicator['dateAdded'] = parse_datetime(indicator['dateAdded']).strftime(DATETIME_FORMAT)
 
             # Convert the indicator's dateAdded string to a UNIX timestamp to make life easier for everyone
-            indicator_date_added_unix = int(datetime.strptime(indicator['dateAdded'], DATETIME_FORMAT).strftime("%s"))
+            indicator_date_added_unix = int(parse_datetime(indicator['dateAdded']).strftime("%s"))
 
             # Add the indicator to save it for later because runtime is important!!!
             possible_indicators.append(indicator)
@@ -425,8 +505,7 @@ class ThreatconnectConnector(BaseConnector):
                         if "duplicate" in container_message:
                             return phantom.APP_SUCCESS, "No new indicators found"
 
-                        start_time = (datetime.strptime(indicator['dateAdded'], DATETIME_FORMAT) + timedelta(seconds=1)).strftime(
-                            DATETIME_FORMAT)
+                        start_time = (parse_datetime(indicator['dateAdded']) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
 
                         self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = start_time
 
@@ -554,8 +633,12 @@ class ThreatconnectConnector(BaseConnector):
         """ Returns two Values, use RetVal """
 
         try:
-            ipaddr.IPAddress(primary_field)
-            return RetVal('ip', THREATCONNECT_ENDPOINT_ADDRESS)
+            try:
+                ipaddr.IPAddress(primary_field)
+                return RetVal('ip', THREATCONNECT_ENDPOINT_ADDRESS)
+            except NameError:
+                ipaddress.ip_address(primary_field)
+                return RetVal('ip', THREATCONNECT_ENDPOINT_ADDRESS)
         except ValueError:
             if (phantom.is_email(primary_field)):
                 return RetVal('address', THREATCONNECT_ENDPOINT_EMAIL)
@@ -598,10 +681,13 @@ class ThreatconnectConnector(BaseConnector):
         elif (phantom.is_url(summary)):
             return "URL Artifact", "requestURL", "url"
         elif (phantom.is_ip(summary)):
-             return "IP Artifact", "deviceAddress", "ip"
+            return "IP Artifact", "deviceAddress", "ip"
         try:
-            # Check for IPV6
-            ipaddr.IPAddress(summary)
+            try:
+                # Check for IPV6
+                ipaddr.IPAddress(summary)
+            except NameError:
+                ipaddress.ip_address(summary)
             return "IP Artifact", "deviceCustomIPv6Address1", "ipv6"
         except:
             if (phantom.is_domain(summary)):
@@ -623,9 +709,12 @@ class ThreatconnectConnector(BaseConnector):
         # Prepare the signature to be signed by the HMAC
         signature_raw = "{0}:{1}:{2}".format(encoded_url, rtype.upper(), timestamp_nonce)
         # Autograph time
-        signature_hmac = hmac.new(str(secret_key), signature_raw, digestmod=hashlib.sha256).digest()
-        # Formatting ThreatConnect's 'unique' auth field
-        authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac))
+        try:
+            signature_hmac = hmac.new(str(secret_key), signature_raw, digestmod=hashlib.sha256).digest()
+            authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac))
+        except:
+            signature_hmac = hmac.new(secret_key.encode(), signature_raw.encode(), digestmod=hashlib.sha256).digest()
+            authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac).decode())
 
         header = {'Content-Type': 'application/json', 'Timestamp': timestamp_nonce, 'Authorization': authorization}
 
@@ -704,8 +793,12 @@ class ThreatconnectConnector(BaseConnector):
 
         url = self._get_url() + endpoint
 
-        headers = self._create_header(endpoint, params=params, rtype=rtype, json=body)
+        config = self.get_config()
 
+        try:
+            headers = self._create_header(endpoint, params=params, rtype=rtype, json=body)
+        except Exception as e:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
         try:
             request_func = getattr(requests, rtype)
         except AttributeError:
@@ -716,10 +809,16 @@ class ThreatconnectConnector(BaseConnector):
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
 
         try:
-            response = request_func(url, params=params, json=body, headers=headers)
+            response = request_func(url, params=params, json=body, headers=headers, verify=config.get('verify_server_cert', False))
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
+
+        # Added line
+        try:
+            self.debug_print("raw_response: ", response.json())
+        except:
+            self.debug_print("text_raw_response: ", response.text)
 
         return self._process_response(response, action_result)
 
@@ -735,6 +834,14 @@ class ThreatconnectConnector(BaseConnector):
         self._state = self.load_state()
         config = self.get_config()
         config[THREATCONNECT_BASE_URL] = config[THREATCONNECT_BASE_URL].rstrip('/')
+
+        max_containers = config.get("max_containers", None)
+        if not (max_containers is None or self.is_positive_non_zero_int(max_containers)):
+            return self.set_status(phantom.APP_ERROR, 'Please provide a positive, non zero integer in config parameter "max_containers"')
+
+        interval_days = config.get("interval_days", None)
+        if not (interval_days is None or self.is_positive_non_zero_int(interval_days)):
+            return self.set_status(phantom.APP_ERROR, 'Please provide a positive, non zero integer in config parameter "interval_days"')
 
         return phantom.APP_SUCCESS
 
@@ -766,6 +873,8 @@ class ThreatconnectConnector(BaseConnector):
             ret_val = self._hunt_indicator(param)
         elif (action == self.ACTION_ID_HUNT_URL):
             ret_val = self._hunt_indicator(param)
+        elif (action == self.ACTION_ID_LIST_OWNERS):
+            ret_val = self._list_owners(param)
         elif (action == self.ACTION_ID_ON_POLL):
             ret_val = self._on_poll(param)
 
@@ -773,27 +882,54 @@ class ThreatconnectConnector(BaseConnector):
 
 
 if __name__ == '__main__':
-    '''
-    Code that is executed when run in standalone debug mode.  Useful for debugging specific actions, given an action run json
 
-    '''
-    # Debugging imports
     import sys
     import pudb
-
-    # Breakpoint at runtime
+    import argparse
     pudb.set_trace()
-    # The first param when calling is the input json file
+
+    argparser = argparse.ArgumentParser()
+
+    argparser.add_argument('input_test_json', help='Input Test JSON file')
+    argparser.add_argument('-u', '--username', help='username', required=False)
+    argparser.add_argument('-p', '--password', help='password', required=False)
+
+    args = argparser.parse_args()
+    session_id = None
+
+    if (args.username and args.password):
+        login_url = BaseConnector._get_phantom_base_url() + "login"
+        try:
+            print("Accessing the Login page")
+            r = requests.get(login_url, verify=False)
+            csrftoken = r.cookies['csrftoken']
+            data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
+            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
+
+            print("Logging into Platform to get the session id")
+            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            session_id = r2.cookies['sessionid']
+
+        except Exception as e:
+            print("Unable to get session id from the platform. Error: {0}".format(str(e)))
+            exit(1)
+
+    if (len(sys.argv) < 2):
+        print("No test json specified as input")
+        exit(0)
+
     with open(sys.argv[1]) as f:
-        # Load the input as JSON
-        in_json = json.loads(f.read())
-        print (json.dumps(in_json, indent=' ' * 4))
-        # Create the connector class object
+        in_json = f.read()
+        in_json = json.loads(in_json)
+        print(json.dumps(in_json, indent=4))
+
         connector = ThreatconnectConnector()
-        # Set the member variables
         connector.print_progress_message = True
-        # Call the Base Connector's handle_action to kick off action handling
+
+        if (session_id is not None):
+            in_json['user_session_token'] = session_id
+
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        # Dump the return value
-        print ret_val
+        print(json.dumps(json.loads(ret_val), indent=4))
+
     exit(0)
