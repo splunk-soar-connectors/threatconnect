@@ -1,15 +1,8 @@
-# --
 # File: threatconnect_consts.py
+# Copyright (c) 2016-2021 Splunk Inc.
 #
-# Copyright (c) Phantom Cyber Corporation, 2016-2018
-#
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber.
-# --
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 THREATCONNECT_CONFIG_START_TIME = "start_time"
 THREATCONNECT_JSON_CONTAINER_LIMIT = "max_containers"
 THREATCONNECT_CONFIG_POLL_NOW_CONTAINER_LIMIT = "container_count"
@@ -38,9 +31,10 @@ THREATCONNECT_JSON_SHA1 = "sha1"
 THREATCONNECT_JSON_SHA256 = "sha256"
 THREATCONNECT_JSON_SIZE = "size"
 THREATCONNECT_JSON_HOSTNAME = "host_name"
-THREATCONNECT_JSON_DNSACTIVE = "dnsActive"
-THREATCONNECT_JSON_WHOISACTIVE = "whoisActive"
+THREATCONNECT_JSON_DNSACTIVE = "dns_active"
+THREATCONNECT_JSON_WHOISACTIVE = "whois_active"
 THREATCONNECT_JSON_TEXT = "text"
+THREATCONNECT_JSON_OWNER = "owner"
 THREATCONNECT_POST = "post"
 THREATCONNECT_GET = "get"
 THREATCONNECT_PUT = "put"
