@@ -496,10 +496,9 @@ class ThreatconnectConnector(BaseConnector):
                     date_to_use = self._state.get(THREATCONNECT_JSON_LAST_DATE_TIME)
 
                     if date_to_use is None:
-
                         date_to_use = beginning_of_polling_date
-
-                    if date_to_use == indicator['dateAdded']:
+                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = date_to_use
+                    elif date_to_use == indicator['dateAdded']:
 
                         # If it's the same date make sure that there have been no containers added (this would mean it caught up)
                         if "duplicate" in container_message:

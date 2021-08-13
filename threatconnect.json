@@ -4,8 +4,8 @@
     "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion",
     "type": "threat intel",
     "main_module": "threatconnect_connector.py",
-    "app_version": "2.0.23",
-    "utctime_updated": "2021-01-06T08:29:36.000000Z",
+    "app_version": "2.1.2",
+    "utctime_updated": "2021-08-12T06:58:23.000000Z",
     "product_vendor": "ThreatConnect",
     "product_name": "ThreatConnect",
     "product_version_regex": ".*",
@@ -49,7 +49,7 @@
             "data_type": "numeric",
             "order": 4,
             "description": "Last 'N' Days to get data during 'Poll Now' and scheduled polling",
-            "default": "7"
+            "default": 7
         },
         "verify_server_cert": {
             "data_type": "boolean",
@@ -62,34 +62,31 @@
             "action": "on poll",
             "description": "Callback action for the on_poll ingest functionality",
             "verbose": "<p>Basic polling configuration is available within the asset configuration.  <b>On_poll</b>'s maximum ingested indicators is, by default, 100.  This can be found in the asset configuration under <b>max_containers</b>.  The other optional parameter in the asset configuration, <b>num_of_days</b>, specifies how old to start polling from during the first ingestion cycle.  The default value is 7 days.  This <b>num_of_days</b> parameter also affects when the Poll Now starts polling as well.</p><p>This action will start from the oldest indicator and create a container for each.</p><p>The following CEF fields will be created, depending upon the IOC type:</p><table><tr><th>IOC</th><th>Artifact Name</th><th>CEF Field</th></tr><tr><td>Address IPv4</td><td>IP Artifact</td><td>deviceAddress</td></tr><tr><td>Address IPv6</td><td>IP Artifact</td><td>deviceCustomIPv6Address1</td></tr><tr><td>Email</td><td>Email Address Artifact</td><td>emailAddress</td></tr><tr><td>File</td><td>File Artifact</td><td>fileHashMd5, fileHashSha1, fileHashSha256 (where applicable)</td></tr><tr><td>Host</td><td>Domain Artifact</td><td>DeviceDnsDomain</td></tr><tr><td>URL</td><td>URL Artifact</td><td>requestURL</td></tr><tr><td>CIDR IPv4</td><td>CIDR Artifact</td><td>deviceAddress (IP), cidrPrefix, cidr (CIDR)</td></tr><tr><td>Mutex</td><td>Mutex Artifact</td><td>mutex</td></tr><tr><td>Registry Key</td><td>Registry Key Artifact</td><td>registryKey (Registry Key Name), registryValue (Value Name), registryType (Value Type)</td></tr><tr><td>ASN</td><td>ASN Artifact</td><td>asn</td></tr><tr><td>User Agent</td><td>User Agent Artifact</td><td>requestClientApplication</td></tr></table><p>Additional CEF fields that all artifacts will have are:</p><table><tr><th>CEF Field</th><th>Description</th></tr><tr><td>deviceCustomDate1</td><td>Date Created</td></tr><tr><td>deviceCustomDate1Label</td><td>Label for above</td></tr><tr><td>deviceCustomDate2</td><td>Last Modified Date</td></tr><tr><td>deviceCustomDate2Label</td><td>Label for above</td></tr><tr><td>rating</td><td>Indicator rating</td></tr><tr><td>confidence</td><td>Indicator confidence</td></tr><tr><td>threatAssessRating</td><td>Threat Assessment rating</td></tr><tr><td>threatAssessConfidence</td><td>Threat Assessment Confidence</td></tr></table><p>Rating, confidence, threatAssessRating, and threatAssessConfidence will only be added if they are present within the indicator.</p><p>Any indicator that does not fall within any of the categories above is considered a custom indicator, and, as a result, will have a CEF field of 'cn1'.</p><p>It is also very important that the Maximum Container for scheduled polling configured should be greater than the maximum events that are generated per second. If the app detects it got the maximum configured events and all occurred in the same second, it will start polling from the next second in the next polling cycle.</p>",
-            "identifier": "on_poll",
-            "output": [],
-            "parameters": {},
-            "read_only": true,
             "type": "ingest",
+            "identifier": "on_poll",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
             "versions": "EQ(*)"
         },
         {
             "action": "test connectivity",
             "description": "Validate the asset configuration for connectivity",
-            "identifier": "test_asset_connectivity",
-            "output": [],
-            "parameters": {},
-            "read_only": true,
-            "type": "test",
             "verbose": "This action attempts to authenticate a GET request with the ThreatConnect API using a signature.",
+            "type": "test",
+            "identifier": "test_asset_connectivity",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
             "versions": "EQ(*)"
         },
         {
             "action": "list owners",
             "description": "List the owners visible with the configured credentials",
+            "type": "investigate",
             "identifier": "list_owners",
-            "render": {
-                "height": 5,
-                "title": "List Owners",
-                "type": "table",
-                "width": 12
-            },
+            "read_only": true,
+            "parameters": {},
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -103,7 +100,7 @@
                     "column_name": "Owner ID",
                     "column_order": 1,
                     "data_path": "action_result.data.*.data.owner.*.id",
-                    "data_type": "string",
+                    "data_type": "numeric",
                     "example_values": [
                         423
                     ]
@@ -173,15 +170,76 @@
                     ]
                 }
             ],
-            "parameters": {},
-            "read_only": true,
-            "type": "generic",
+            "render": {
+                "height": 5,
+                "title": "List Owners",
+                "type": "table",
+                "width": 12
+            },
             "versions": "EQ(*)"
         },
         {
             "action": "post data",
             "description": "Create an indicator and post it to ThreatConnect",
+            "verbose": "<p>This action will post an indicator back to the ThreatConnect platform. The only required field is <b>primary_field</b>. This parameter can be an IP address, an email, a hash (MD5, SHA-1, or SHA-256), a hostname, or a URL.</p><p>This action also allows for one to post multiple hashes into one indicator. To post multiple hashes to one indicator, put all the hashes in the <b>primary_field</b> separated by commas. An indicator can have a maximum of one MD5, one SHA-1, and one SHA-256 hash. If multiple hashes of the same type are entered into the primary field, such as multiple MD5 hashes, the last hash will be the only one posted.</p><p>All indicator types can take the optional parameters <b>rating</b> and <b>confidence</b>. The specialized optional parameters for files and hosts are below:</p>Files<ul><li>size</li></ul>Hosts<ul><li>dns_active</li><li>whois_active</li></ul><p>This action also allows for the addition of attributes to the specified indicator that is created. The attribute will only be created if both the <b>attribute_name</b> and the <b>attribute_value</b> values are populated. If attempting to write an attribute with a name that does not exist or apply to the indicator's type, the action will fail.</p><p>The data paths listed below are all the <i>possible</i> data paths, but they will differ based upon the given parameter in <b>primary_field</b>. The data paths will be of the form of <b>action_result.data.*.[Indicator Type].*</b>, where the Indicator Type is the type given to the parameter in <b>primary_field</b>. All file hashes will have the same Indicator Type. If one attempts to post an indicator that already exists on ThreatConnect, that indicator will be updated.</p>",
+            "type": "generic",
             "identifier": "post_data",
+            "read_only": false,
+            "parameters": {
+                "confidence": {
+                    "data_type": "numeric",
+                    "description": "Analytic confidence (0 to 100)",
+                    "order": 2
+                },
+                "dns_active": {
+                    "data_type": "boolean",
+                    "description": "Is DNS active",
+                    "order": 4
+                },
+                "primary_field": {
+                    "contains": [
+                        "ip",
+                        "ipv6",
+                        "email",
+                        "hash",
+                        "md5",
+                        "sha1",
+                        "sha256",
+                        "domain",
+                        "url"
+                    ],
+                    "data_type": "string",
+                    "description": "IP, email, file hash, domain, or URL",
+                    "order": 0,
+                    "required": true,
+                    "primary": true
+                },
+                "rating": {
+                    "data_type": "numeric",
+                    "description": "Indicator rating (0 to 5)",
+                    "order": 1
+                },
+                "size": {
+                    "data_type": "numeric",
+                    "description": "Size of file in bytes",
+                    "order": 3
+                },
+                "whois_active": {
+                    "data_type": "boolean",
+                    "description": "Is WHOIS active",
+                    "order": 5
+                },
+                "attribute_name": {
+                    "description": "Name of attribute to add",
+                    "data_type": "string",
+                    "order": 6
+                },
+                "attribute_value": {
+                    "description": "Value of attribute being added",
+                    "data_type": "string",
+                    "order": 7
+                }
+            },
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -590,76 +648,38 @@
                     ]
                 }
             ],
-            "parameters": {
-                "confidence": {
-                    "data_type": "numeric",
-                    "description": "Analytic confidence (0 to 100)",
-                    "order": 2
-                },
-                "dns_active": {
-                    "data_type": "boolean",
-                    "description": "Is DNS active",
-                    "order": 4
-                },
-                "primary_field": {
-                    "contains": [
-                        "ip",
-                        "ipv6",
-                        "email",
-                        "hash",
-                        "md5",
-                        "sha1",
-                        "sha256",
-                        "domain",
-                        "url"
-                    ],
-                    "data_type": "string",
-                    "description": "IP, email, file hash, domain, or URL",
-                    "order": 0,
-                    "required": true,
-                    "primary": true
-                },
-                "rating": {
-                    "data_type": "numeric",
-                    "description": "Indicator rating (0 to 5)",
-                    "order": 1
-                },
-                "size": {
-                    "data_type": "numeric",
-                    "description": "Size of file in bytes",
-                    "order": 3
-                },
-                "whois_active": {
-                    "data_type": "boolean",
-                    "description": "Is WHOIS active",
-                    "order": 5
-                },
-                "attribute_name": {
-                    "description": "Name of attribute to add",
-                    "data_type": "string",
-                    "order": 6
-                },
-                "attribute_value": {
-                    "description": "Value of attribute being added",
-                    "data_type": "string",
-                    "order": 7
-                }
-            },
-            "read_only": false,
             "render": {
                 "height": 5,
                 "title": "Post Data",
                 "type": "json",
                 "width": 12
             },
-            "type": "generic",
-            "versions": "EQ(*)",
-            "verbose": "<p>This action will post an indicator back to the ThreatConnect platform.  The only required field is <b>primary_field</b>.  This parameter can be an IP address, an email, a hash (MD5, SHA-1, or SHA-256), a hostname, or a URL.</p><p>This action also allows for one to post multiple hashes into one indicator.  To post multiple hashes to one indicator, put all the hashes in the <b>primary_field</b> separated by commas.  An indicator can have a maximum of one MD5, one SHA-1, and one SHA-256 hash.  If multiple hashes of the same type are entered into the primary field, such as multiple MD5 hashes, the last hash will be the only one posted.</P><p>All indicator types can take the optional parameters <b>rating</b> and <b>confidence</b>.  The specialized optional parameters for files and hosts are below:</p>Files<ul><li>size</li></ul>Hosts<ul><li>dns_active</li><li>whois_active</li></ul><p>This action also allows for the addition of attributes to the specified indicator that is created.  The attribute will only be created if both the <b>attribute_name</b> and the <b>attribute_value</b> values are populated.  If attempting to write an attribute with a name that does not exist or apply to the indicator's type, the action will fail.  </p><p>The data paths listed below are all the <i>possible</i> data paths, but they will differ based upon the given parameter in <b>primary_field</b>.  The data paths will be of the form of <b>action_result.data.*.[Indicator Type].*</b>, where the Indicator Type is the type given to the parameter in <b>primary_field</b>.  All file hashes will have the same Indicator Type.  If one attempts to post an indicator that already exists on ThreatConnect, that indicator will be updated.</p>"
+            "versions": "EQ(*)"
         },
         {
             "action": "hunt ip",
             "description": "Hunt an IP and retrieve any available information",
+            "type": "investigate",
             "identifier": "hunt_ip",
+            "read_only": true,
+            "parameters": {
+                "ip": {
+                    "contains": [
+                        "ip",
+                        "ipv6"
+                    ],
+                    "data_type": "string",
+                    "description": "IP to hunt",
+                    "order": 0,
+                    "primary": true,
+                    "required": true
+                },
+                "owner": {
+                    "data_type": "string",
+                    "description": "Indicator Owner within ThreatConnect",
+                    "order": 1
+                }
+            },
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -771,14 +791,30 @@
                     "data_type": "numeric"
                 }
             ],
+            "render": {
+                "height": 5,
+                "title": "Hunt Ip",
+                "type": "table",
+                "width": 12
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "hunt file",
+            "description": "Hunt a file hash and retrieve available information",
+            "type": "investigate",
+            "identifier": "hunt_file",
+            "read_only": true,
             "parameters": {
-                "ip": {
+                "hash": {
                     "contains": [
-                        "ip",
-                        "ipv6"
+                        "hash",
+                        "md5",
+                        "sha1",
+                        "sha256"
                     ],
                     "data_type": "string",
-                    "description": "IP to hunt",
+                    "description": "File hash (md5, sha1, sha256)",
                     "order": 0,
                     "primary": true,
                     "required": true
@@ -789,20 +825,6 @@
                     "order": 1
                 }
             },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt Ip",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "versions": "EQ(*)"
-        },
-        {
-            "action": "hunt file",
-            "description": "Hunt a file hash and retrieve available information",
-            "identifier": "hunt_file",
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -919,16 +941,27 @@
                     "data_type": "numeric"
                 }
             ],
+            "render": {
+                "height": 5,
+                "title": "Hunt File",
+                "type": "table",
+                "width": 12
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "hunt email",
+            "description": "Hunt an email and retrieve available information",
+            "type": "investigate",
+            "identifier": "hunt_email",
+            "read_only": true,
             "parameters": {
-                "hash": {
+                "email": {
                     "contains": [
-                        "hash",
-                        "md5",
-                        "sha1",
-                        "sha256"
+                        "email"
                     ],
                     "data_type": "string",
-                    "description": "File hash (md5, sha1, sha256)",
+                    "description": "Email address",
                     "order": 0,
                     "primary": true,
                     "required": true
@@ -939,20 +972,6 @@
                     "order": 1
                 }
             },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt File",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "versions": "EQ(*)"
-        },
-        {
-            "action": "hunt email",
-            "description": "Hunt an email and retrieve available information",
-            "identifier": "hunt_email",
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -1052,13 +1071,28 @@
                     "data_type": "numeric"
                 }
             ],
+            "render": {
+                "height": 5,
+                "title": "Hunt Email",
+                "type": "table",
+                "width": 12
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "hunt domain",
+            "description": "Hunt a domain and retrieve available information",
+            "type": "investigate",
+            "identifier": "hunt_host",
+            "read_only": true,
             "parameters": {
-                "email": {
+                "domain": {
                     "contains": [
-                        "email"
+                        "url",
+                        "domain"
                     ],
                     "data_type": "string",
-                    "description": "Email address",
+                    "description": "Domain or URL name",
                     "order": 0,
                     "primary": true,
                     "required": true
@@ -1069,20 +1103,6 @@
                     "order": 1
                 }
             },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt Email",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "versions": "EQ(*)"
-        },
-        {
-            "action": "hunt domain",
-            "description": "Hunt a domain and retrieve available information",
-            "identifier": "hunt_host",
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -1185,14 +1205,27 @@
                     "data_type": "numeric"
                 }
             ],
+            "render": {
+                "height": 5,
+                "title": "Hunt Domain",
+                "type": "table",
+                "width": 12
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "hunt url",
+            "description": "Hunt a URL and retrieve available information",
+            "type": "investigate",
+            "identifier": "hunt_url",
+            "read_only": true,
             "parameters": {
-                "domain": {
+                "url": {
                     "contains": [
-                        "url",
-                        "domain"
+                        "url"
                     ],
                     "data_type": "string",
-                    "description": "Domain or URL name",
+                    "description": "URL to find",
                     "order": 0,
                     "primary": true,
                     "required": true
@@ -1203,20 +1236,6 @@
                     "order": 1
                 }
             },
-            "read_only": true,
-            "render": {
-                "height": 5,
-                "title": "Hunt Domain",
-                "type": "table",
-                "width": 12
-            },
-            "type": "investigate",
-            "versions": "EQ(*)"
-        },
-        {
-            "action": "hunt url",
-            "description": "Hunt a URL and retrieve available information",
-            "identifier": "hunt_url",
             "output": [
                 {
                     "data_path": "action_result.status",
@@ -1322,31 +1341,12 @@
                     "data_type": "numeric"
                 }
             ],
-            "parameters": {
-                "url": {
-                    "contains": [
-                        "url"
-                    ],
-                    "data_type": "string",
-                    "description": "URL to find",
-                    "order": 0,
-                    "primary": true,
-                    "required": true
-                },
-                "owner": {
-                    "data_type": "string",
-                    "description": "Indicator Owner within ThreatConnect",
-                    "order": 1
-                }
-            },
-            "read_only": true,
             "render": {
                 "height": 5,
                 "title": "Hunt Url",
                 "type": "table",
                 "width": 12
             },
-            "type": "investigate",
             "versions": "EQ(*)"
         }
     ]
