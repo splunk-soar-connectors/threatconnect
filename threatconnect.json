@@ -4,7 +4,7 @@
     "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion",
     "type": "threat intel",
     "main_module": "threatconnect_connector.py",
-    "app_version": "2.1.4",
+    "app_version": "2.2.0",
     "utctime_updated": "2021-11-01T19:30:57.000000Z",
     "product_vendor": "ThreatConnect",
     "product_name": "ThreatConnect",
@@ -14,7 +14,7 @@
     "min_phantom_version": "4.10.0.40961",
     "python_version": "3",
     "latest_tested_versions": [
-        "Threatconnect API v2 on 12/22/2020"
+        "Threatconnect API v2 on 11/01/2021"
     ],
     "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
@@ -238,6 +238,16 @@
                     "description": "Value of attribute being added",
                     "data_type": "string",
                     "order": 7
+                },
+                "tag": {
+                    "description": "Name of Indicator Tag to add",
+                    "data_type": "string",
+                    "order": 8
+                },
+                "security_label": {
+                    "description": "Name of Security Label to add",
+                    "data_type": "string",
+                    "order": 9
                 }
             },
             "output": [
@@ -289,6 +299,14 @@
                 },
                 {
                     "data_path": "action_result.parameter.size",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.tag",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.security_label",
                     "data_type": "string"
                 },
                 {
