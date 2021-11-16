@@ -4,17 +4,17 @@
     "description": "This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion",
     "type": "threat intel",
     "main_module": "threatconnect_connector.py",
-    "app_version": "2.1.3",
-    "utctime_updated": "2021-08-13T21:27:09.000000Z",
+    "app_version": "2.2.2",
+    "utctime_updated": "2021-11-16T05:46:26.000000Z",
     "product_vendor": "ThreatConnect",
     "product_name": "ThreatConnect",
     "product_version_regex": ".*",
     "logo": "logo_threatconnect.svg",
     "logo_dark": "logo_threatconnect_dark.svg",
-    "min_phantom_version": "4.9.39220",
+    "min_phantom_version": "4.10.0.40961",
     "python_version": "3",
     "latest_tested_versions": [
-        "Threatconnect API v2 on 12/22/2020"
+        "Threatconnect API v2 on 11/01/2021"
     ],
     "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
@@ -235,9 +235,19 @@
                     "order": 6
                 },
                 "attribute_value": {
-                    "description": "Value of attribute being added",
+                    "description": "Value of attribute to add",
                     "data_type": "string",
                     "order": 7
+                },
+                "tag": {
+                    "description": "Name of Indicator Tag to add",
+                    "data_type": "string",
+                    "order": 8
+                },
+                "security_label": {
+                    "description": "Name of Security Label to add",
+                    "data_type": "string",
+                    "order": 9
                 }
             },
             "output": [
@@ -289,6 +299,14 @@
                 },
                 {
                     "data_path": "action_result.parameter.size",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.tag",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.security_label",
                     "data_type": "string"
                 },
                 {
@@ -1349,5 +1367,65 @@
             },
             "versions": "EQ(*)"
         }
-    ]
+    ],
+    "pip_dependencies": {
+        "wheel": [
+            {
+                "module": "Django",
+                "input_file": "wheels/Django-3.2.5-py3-none-any.whl"
+            },
+            {
+                "module": "asgiref",
+                "input_file": "wheels/asgiref-3.4.1-py3-none-any.whl"
+            },
+            {
+                "module": "beautifulsoup4",
+                "input_file": "wheels/beautifulsoup4-4.9.1-py3-none-any.whl"
+            },
+            {
+                "module": "certifi",
+                "input_file": "wheels/certifi-2021.10.8-py2.py3-none-any.whl"
+            },
+            {
+                "module": "chardet",
+                "input_file": "wheels/chardet-3.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "module": "idna",
+                "input_file": "wheels/idna-2.10-py2.py3-none-any.whl"
+            },
+            {
+                "module": "ipaddr",
+                "input_file": "wheels/ipaddr-2.2.0-py3-none-any.whl"
+            },
+            {
+                "module": "pytz",
+                "input_file": "wheels/pytz-2021.3-py2.py3-none-any.whl"
+            },
+            {
+                "module": "requests",
+                "input_file": "wheels/requests-2.25.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "simplejson",
+                "input_file": "wheels/simplejson-3.17.2-cp36-cp36m-manylinux2010_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+            },
+            {
+                "module": "soupsieve",
+                "input_file": "wheels/soupsieve-2.2.1-py3-none-any.whl"
+            },
+            {
+                "module": "sqlparse",
+                "input_file": "wheels/sqlparse-0.4.2-py3-none-any.whl"
+            },
+            {
+                "module": "typing_extensions",
+                "input_file": "wheels/typing_extensions-3.10.0.2-py3-none-any.whl"
+            },
+            {
+                "module": "urllib3",
+                "input_file": "wheels/urllib3-1.26.7-py2.py3-none-any.whl"
+            }
+        ]
+    }
 }

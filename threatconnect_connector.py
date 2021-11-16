@@ -22,12 +22,12 @@ import hashlib
 import base64
 try:
     import ipaddr
-except:
+except Exception:
     import ipaddress
 from datetime import datetime, timedelta
 try:
     from urllib import quote_plus
-except:
+except Exception:
     from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
 
@@ -81,7 +81,7 @@ class ThreatconnectConnector(BaseConnector):
 
         ret_val, resp_json = self._make_rest_call(action_result, THREATCONNECT_ENDPOINT_TEST)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         if not resp_json['status']:
@@ -103,7 +103,7 @@ class ThreatconnectConnector(BaseConnector):
 
         ret_val, resp_json = self._make_rest_call(action_result, THREATCONNECT_ENDPOINT_TEST)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         if not resp_json.get('status'):
@@ -131,16 +131,40 @@ class ThreatconnectConnector(BaseConnector):
 
         ret_val, response = self._make_rest_call(action_result, endpoint, body=kwargs, rtype="post")
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         status = response['status'] if type(response) == dict else THREATCONNECT_STATUS_FAILURE
 
-        if (phantom.is_fail(ret_val)) or status == THREATCONNECT_STATUS_FAILURE:
+        if phantom.is_fail(ret_val) or status == THREATCONNECT_STATUS_FAILURE:
             # Return a failed action result
             action_result.set_status(phantom.APP_ERROR, "The requested attribute was not found")
 
             return phantom.APP_ERROR
+
+        return phantom.APP_SUCCESS
+
+    def _add_tag(self, action_result, tag, indicator_summary, indicator_type):
+
+        # Create an endpoint specific for posting tag
+        endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + indicator_type + "/" + quote_plus(indicator_summary) + "/" + "tags/" + tag
+
+        ret_val, response = self._make_rest_call(action_result, endpoint, rtype=THREATCONNECT_POST)
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, response)
+
+        return phantom.APP_SUCCESS
+
+    def _add_security_label(self, action_result, security_label, indicator_summary, indicator_type):
+
+        # Create an endpoint specific for posting tag
+        endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + indicator_type + "/" + quote_plus(indicator_summary) + "/" + "securityLabels/" + quote_plus(security_label)
+
+        ret_val, response = self._make_rest_call(action_result, endpoint, rtype=THREATCONNECT_POST)
+
+        if phantom.is_fail(ret_val):
+            return action_result.set_status(phantom.APP_ERROR, response)
 
         return phantom.APP_SUCCESS
 
@@ -149,7 +173,7 @@ class ThreatconnectConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(params))
 
         # Messy if/else block so that there aren't 5 actions with repeated code
-        if (params.get(THREATCONNECT_JSON_IP, None)):
+        if params.get(THREATCONNECT_JSON_IP, None):
             indicator_to_hunt = params[THREATCONNECT_JSON_IP]
             try:
                 try:
@@ -160,11 +184,11 @@ class ThreatconnectConnector(BaseConnector):
                     endpoint = THREATCONNECT_ENDPOINT_ADDRESS
             except ValueError:
                 return action_result.set_status(phantom.APP_ERROR, "Parameter 'ip' failed validation")
-        elif (params.get(THREATCONNECT_JSON_FILE, None)):
+        elif params.get(THREATCONNECT_JSON_FILE, None):
             indicator_to_hunt = params[THREATCONNECT_JSON_FILE]
             endpoint = THREATCONNECT_ENDPOINT_FILE
         # If the action is hunt domain then it gets really special.  Need to pass domains to host, and urls to url
-        elif (params.get(THREATCONNECT_JSON_DOMAIN, None)):
+        elif params.get(THREATCONNECT_JSON_DOMAIN, None):
             # NEED SOME EXTRA SANITATION ON THE DATA BEFORE IT GETS PASSED OVER
             hunt_me = params.get(THREATCONNECT_JSON_DOMAIN)
             if phantom.is_domain(hunt_me):
@@ -175,10 +199,10 @@ class ThreatconnectConnector(BaseConnector):
                 endpoint = THREATCONNECT_ENDPOINT_URL
             else:
                 return action_result.set_status(phantom.APP_ERROR, "Could not resolve parameter type")
-        elif (params.get(THREATCONNECT_JSON_URL, None)):
+        elif params.get(THREATCONNECT_JSON_URL, None):
             indicator_to_hunt = params[THREATCONNECT_JSON_URL]
             endpoint = THREATCONNECT_ENDPOINT_URL
-        elif (params.get(THREATCONNECT_JSON_EMAIL, None)):
+        elif params.get(THREATCONNECT_JSON_EMAIL, None):
             indicator_to_hunt = params[THREATCONNECT_JSON_EMAIL]
             endpoint = THREATCONNECT_ENDPOINT_EMAIL
 
@@ -187,16 +211,16 @@ class ThreatconnectConnector(BaseConnector):
 
         endpoint_uri = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + endpoint
 
-        if (params.get(THREATCONNECT_JSON_OWNER, None)):
+        if params.get(THREATCONNECT_JSON_OWNER, None):
             owners_list = []
             owners = params.get(THREATCONNECT_JSON_OWNER, None)
 
             # First work on the comma as the seperator
             if type(owners) is list:
                 owners_list = owners
-            elif (',' in owners):
+            elif ',' in owners:
                 owners_list = owners.split(',')
-            elif(';' in owners):
+            elif ';' in owners:
                 owners_list = owners.split(';')
             else:
                 owners_list.append(owners)
@@ -208,10 +232,10 @@ class ThreatconnectConnector(BaseConnector):
                 # Make the rest call
                 ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
 
-                if (phantom.is_fail(ret_val)):
+                if phantom.is_fail(ret_val):
                     return action_result.get_status()
 
-                if (response['status'] == THREATCONNECT_STATUS_FAILURE):
+                if response['status'] == THREATCONNECT_STATUS_FAILURE:
                     return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
 
                 action_result.add_data(response)
@@ -226,10 +250,10 @@ class ThreatconnectConnector(BaseConnector):
             # Make the rest call
             ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
-            if (response['status'] == THREATCONNECT_STATUS_FAILURE):
+            if response['status'] == THREATCONNECT_STATUS_FAILURE:
                 return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
 
             action_result.add_data(response)
@@ -247,9 +271,13 @@ class ThreatconnectConnector(BaseConnector):
 
         attribute_value = params.get(THREATCONNECT_JSON_ATTRIBUTE_VALUE)
 
+        tag = params.get(THREATCONNECT_JSON_TAG)
+
+        security_label = params.get(THREATCONNECT_JSON_SECURITY_LABEL)
+
         files = None
 
-        if ("," in primary_field):
+        if "," in primary_field:
 
             files = {}
 
@@ -257,14 +285,14 @@ class ThreatconnectConnector(BaseConnector):
 
                 indicator_type, endpoint = self._get_data_type(value.strip(' '))
 
-                if (phantom.is_fail(indicator_type)):
+                if phantom.is_fail(indicator_type):
                     return action_result.set_status(phantom.APP_ERROR, endpoint)
 
                 files[indicator_type] = value.strip(' ')
         else:
             indicator_type, endpoint = self._get_data_type(primary_field)
 
-            if (phantom.is_fail(indicator_type)):
+            if phantom.is_fail(indicator_type):
                 return action_result.set_status(phantom.APP_ERROR, endpoint)
 
         endpoint_uri = THREATCONNECT_ENDPOINT_INDICATOR_BASE + '/' + endpoint
@@ -274,25 +302,32 @@ class ThreatconnectConnector(BaseConnector):
         kwargs[indicator_type] = primary_field
         kwargs['rating'] = params.get(THREATCONNECT_JSON_RATING, None)
         kwargs['confidence'] = params.get(THREATCONNECT_JSON_CONFIDENCE, None)
-        if (endpoint == THREATCONNECT_ENDPOINT_FILE):
+        if endpoint == THREATCONNECT_ENDPOINT_FILE:
             kwargs['size'] = params.get(THREATCONNECT_JSON_SIZE, None)
             if not (kwargs['size'] is None or self.is_positive_int(kwargs['size'])):
                 return action_result.set_status(phantom.APP_ERROR, 'Please provide a positive integer in size')
             if files:
                 kwargs.update(files)
-        elif (endpoint == THREATCONNECT_ENDPOINT_HOST):
+        elif endpoint == THREATCONNECT_ENDPOINT_HOST:
             kwargs['dnsActive'] = params.get(THREATCONNECT_JSON_DNSACTIVE, None)
             kwargs['whoisActive'] = params.get(THREATCONNECT_JSON_WHOISACTIVE, None)
 
         ret_val, response = self._make_rest_call(action_result, endpoint_uri, body=kwargs, rtype=THREATCONNECT_POST)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         else:
             # Gets to this block if the indicator is new and posted and great and successful
 
-            if (attribute_name and attribute_value):
+            action_result.set_summary({"total_objects": 1,
+                                       "indicator_created/updated": True,
+                                       "attribute_added": False,
+                                       "tag_added": False,
+                                       "security_label_added": False})
+            action_result.add_data(response)
+
+            if attribute_name and attribute_value:
 
                 if files:
                     # The indicator endpoint is only dependent on the first hash within the parameter
@@ -300,34 +335,59 @@ class ThreatconnectConnector(BaseConnector):
 
                 ret_val = self._add_attribute(action_result, attribute_name, attribute_value, primary_field, endpoint)
 
-                if (phantom.is_fail(ret_val)):
-
-                    action_result.add_data(response)
-                    # Update the summary and give a helpful response
-                    action_result.set_summary({"total_objects": 1,
-                                               "indicator_created/updated": True,
-                                               "attribute_added": False})
-
+                if phantom.is_fail(ret_val):
                     return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update the attribute specified. "
                                                                        "Please ensure the attribute_name is valid, is applicable to the indicator "
                                                                        "type and attribute_value is valid")
                 else:
+                    # Update the summary and give a helpful response
+                    action_result.update_summary({"attribute_added": True})
 
-                    action_result.add_data(response)
+                    action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect. Attribute addition succeeded")
 
-                    action_result.set_summary({"total_objects": 1,
-                                               "indicator_created/updated": True,
-                                               "attribute_added": True})
+            if tag:
 
-                    return action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect.  Attribute addition succeeded")
+                if files:
+                    # The indicator endpoint is only dependent on the first hash within the parameter
+                    primary_field = primary_field.split(',')[0].strip(' ')
+
+                ret_val = self._add_tag(action_result, tag, primary_field, endpoint)
+
+                if phantom.is_fail(ret_val):
+                    return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update the tag specified. "
+                                                                       "Please ensure the tag is valid, is applicable to the indicator "
+                                                                       "type")
+
+                else:
+                    # Update the summary and give a helpful response
+                    action_result.update_summary({"tag_added": True})
+
+                    action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect.  Tag addition succeeded")
+
+            if security_label:
+
+                if files:
+                    # The indicator endpoint is only dependent on the first hash within the parameter
+                    primary_field = primary_field.split(',')[0].strip(' ')
+
+                ret_val = self._add_security_label(action_result, security_label, primary_field, endpoint)
+
+                if phantom.is_fail(ret_val):
+                    return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update the security labels specified. "
+                                                                       "Please ensure the security labels is valid, is applicable to the indicator "
+                                                                       "type")
+
+                else:
+                    # Update the summary and give a helpful response
+                    action_result.update_summary({"security_label_added": True})
+
+                    action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect.  Security Labels addition succeeded")
 
             action_result.add_data(response)
 
-            action_result.set_summary({"total_objects": 1,
-                                       "indicator_created/updated": True,
-                                       "attribute_added": False})
+            action_result.update_summary({"total_objects": 1})
 
-            return action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect")
+        return action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect")
 
     def _on_poll(self, params):
 
@@ -337,7 +397,7 @@ class ThreatconnectConnector(BaseConnector):
 
         config = self.get_config()
 
-        if (self.is_poll_now()):
+        if self.is_poll_now():
 
             num_of_days = int(config.get(THREATCONNECT_JSON_DEF_NUM_DAYS, THREATCONNECT_DAYS_TO_POLL))
 
@@ -351,14 +411,14 @@ class ThreatconnectConnector(BaseConnector):
 
             num_of_days = int(config.get(THREATCONNECT_JSON_DEF_NUM_DAYS, THREATCONNECT_DAYS_TO_POLL))
 
-            if (self._state.get('first_run', True)):
+            if self._state.get('first_run', True):
 
                 # Only goes here when its the first time polling with on_poll
                 self._state['first_run'] = False
 
                 start_time = self._first_poll(num_of_days)
 
-            elif (last_time):
+            elif last_time:
 
                 # Last polled time is taken here
                 start_time = last_time
@@ -373,7 +433,7 @@ class ThreatconnectConnector(BaseConnector):
 
         ret_val, resp_json = self._make_rest_call(action_result, endpoint)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             self.save_progress("REST Call failed during ingestion")
 
             return self.set_status(phantom.APP_ERROR)
@@ -382,7 +442,7 @@ class ThreatconnectConnector(BaseConnector):
 
         ret_val, message = self._create_containers(resp_json, start_time)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, message)
 
         return action_result.set_status(phantom.APP_SUCCESS, "Polling has succeeded")
@@ -413,10 +473,10 @@ class ThreatconnectConnector(BaseConnector):
             possible_indicators.append(indicator)
 
             # If the indicator is passed up and it's not the oldest possible one, save it for later
-            if (start_time_unix < indicator_date_added_unix):
+            if start_time_unix < indicator_date_added_unix:
                 continue
             # Successfully found the indicator to stop at.
-            elif (start_time_unix > indicator_date_added_unix):
+            elif start_time_unix > indicator_date_added_unix:
 
                 ret_val, message = self._iterate_indicators(possible_indicators)
                 if phantom.is_fail(ret_val):
@@ -538,7 +598,7 @@ class ThreatconnectConnector(BaseConnector):
             updated_artifact['cef'].update({'ioc': required_fields['summary']})
 
         # Specific formatting for CIDR indicators
-        elif (cef_name == "CIDR Artifact"):
+        elif cef_name == "CIDR Artifact":
             updated_artifact['cef'].update({
                 cef_field[0]: required_fields['summary'].split("/")[0],
                 cef_field[1]: required_fields['summary'].split("/")[1],
@@ -550,7 +610,7 @@ class ThreatconnectConnector(BaseConnector):
             }
 
         # Specific formatting for Registry Key indicators
-        elif (cef_name == "Registry Key Artifact"):
+        elif cef_name == "Registry Key Artifact":
             registry, value_name, value_type = required_fields['summary'].split(" : ")
             updated_artifact['cef'].update({
                 "registryKey": registry,
@@ -619,7 +679,7 @@ class ThreatconnectConnector(BaseConnector):
             # Make the rest call
             action_result = ActionResult()
             ret_val, response = self._make_rest_call(action_result, endpoint_uri, params=kwargs)
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return extra_data
 
             extra_data['md5'] = response['data']['file'][0].get('md5', None)
@@ -639,17 +699,17 @@ class ThreatconnectConnector(BaseConnector):
                 ipaddress.ip_address(primary_field)
                 return RetVal('ip', THREATCONNECT_ENDPOINT_ADDRESS)
         except ValueError:
-            if (phantom.is_email(primary_field)):
+            if phantom.is_email(primary_field):
                 return RetVal('address', THREATCONNECT_ENDPOINT_EMAIL)
-            elif (phantom.is_md5(primary_field)):
+            elif phantom.is_md5(primary_field):
                 return RetVal('md5', THREATCONNECT_ENDPOINT_FILE)
-            elif (phantom.is_sha1(primary_field)):
+            elif phantom.is_sha1(primary_field):
                 return RetVal('sha1', THREATCONNECT_ENDPOINT_FILE)
-            elif (phantom.is_sha256(primary_field)):
+            elif phantom.is_sha256(primary_field):
                 return RetVal('sha256', THREATCONNECT_ENDPOINT_FILE)
-            elif (phantom.is_url(primary_field)):
+            elif phantom.is_url(primary_field):
                 return RetVal('text', THREATCONNECT_ENDPOINT_URL)
-            elif (phantom.is_domain(primary_field)):
+            elif phantom.is_domain(primary_field):
                 if "." in primary_field:
                     return RetVal('hostName', THREATCONNECT_ENDPOINT_HOST)
         return RetVal(phantom.APP_ERROR, THREATCONNECT_NO_ENDPOINT_ERR)
@@ -659,27 +719,27 @@ class ThreatconnectConnector(BaseConnector):
         # Address indicators for example will have IPv4, IPv6, etc.
         indicator_type = required_fields['indicator_type']
         summary = required_fields['summary']
-        if (indicator_type == "mutex"):
+        if indicator_type == "mutex":
             return "Mutex Artifact", "mutex", None
-        if (indicator_type == "cidr"):
+        if indicator_type == "cidr":
             return "CIDR Artifact", ["deviceAddress", "cidrPrefix", "cidr"], ["ip", None, "CIDR"]
-        elif (indicator_type == "registry key"):
+        elif indicator_type == "registry key":
             return "Registry Key Artifact", "registryKey", None
-        elif (indicator_type == "asn"):
+        elif indicator_type == "asn":
             return "ASN Artifact", "asn", None
-        elif (indicator_type == "user agent"):
+        elif indicator_type == "user agent":
             return "User Agent Artifact", "requestClientApplication", None
-        elif (phantom.is_email(summary)):
+        elif phantom.is_email(summary):
             return "Email Address Artifact", "emailAddress", "email"
-        elif (phantom.is_md5(summary)):
+        elif phantom.is_md5(summary):
             return "File Artifact", "fileHash", "md5"
-        elif (phantom.is_sha1(summary)):
+        elif phantom.is_sha1(summary):
             return "File Artifact", "fileHash", "sha1"
-        elif (phantom.is_sha256(summary)):
+        elif phantom.is_sha256(summary):
             return "File Artifact", "fileHash", "sha256"
-        elif (phantom.is_url(summary)):
+        elif phantom.is_url(summary):
             return "URL Artifact", "requestURL", "url"
-        elif (phantom.is_ip(summary)):
+        elif phantom.is_ip(summary):
             return "IP Artifact", "deviceAddress", "ip"
         try:
             try:
@@ -688,8 +748,8 @@ class ThreatconnectConnector(BaseConnector):
             except NameError:
                 ipaddress.ip_address(summary)
             return "IP Artifact", "deviceCustomIPv6Address1", "ipv6"
-        except:
-            if (phantom.is_domain(summary)):
+        except Exception:
+            if phantom.is_domain(summary):
                 return "Domain Artifact", "deviceDnsDomain", "domain"
             return None, None, None
 
@@ -711,7 +771,7 @@ class ThreatconnectConnector(BaseConnector):
         try:
             signature_hmac = hmac.new(str(secret_key), signature_raw, digestmod=hashlib.sha256).digest()
             authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac))
-        except:
+        except Exception:
             signature_hmac = hmac.new(secret_key.encode(), signature_raw.encode(), digestmod=hashlib.sha256).digest()
             authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac).decode())
 
@@ -721,7 +781,7 @@ class ThreatconnectConnector(BaseConnector):
 
     def _process_empty_reponse(self, response, action_result):
 
-        if (200 <= response.status_code < 205):
+        if 200 <= response.status_code < 205:
             return RetVal(phantom.APP_SUCCESS, {})
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
@@ -737,7 +797,7 @@ class ThreatconnectConnector(BaseConnector):
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = '\n'.join(split_lines)
-        except:
+        except Exception:
             error_text = "Cannot parse error details"
 
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
@@ -755,7 +815,7 @@ class ThreatconnectConnector(BaseConnector):
         except Exception as e:
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse response as JSON", e), None)
 
-        if (200 <= r.status_code < 205):
+        if 200 <= r.status_code < 205:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         action_result.add_data(resp_json)
@@ -771,10 +831,10 @@ class ThreatconnectConnector(BaseConnector):
             action_result.add_debug_data({'r_status_code': r.status_code})
 
         # There are just too many differences in the response to handle all of them in the same function
-        if ('json' in r.headers.get('Content-Type', '')):
+        if 'json' in r.headers.get('Content-Type', ''):
             return self._process_json_response(r, action_result)
 
-        if ('html' in r.headers.get('Content-Type', '')):
+        if 'html' in r.headers.get('Content-Type', ''):
             return self._process_html_response(r, action_result)
 
         # it's not an html or json, handle if it is a successfull empty reponse
@@ -816,7 +876,7 @@ class ThreatconnectConnector(BaseConnector):
         # Added line
         try:
             self.debug_print("raw_response: ", response.json())
-        except:
+        except Exception:
             self.debug_print("text_raw_response: ", response.text)
 
         return self._process_response(response, action_result)
@@ -858,23 +918,23 @@ class ThreatconnectConnector(BaseConnector):
         ret_val = phantom.APP_SUCCESS
 
         # Find the correct action to use
-        if (action == self.ACTION_ID_POST_DATA):
+        if action == self.ACTION_ID_POST_DATA:
             ret_val = self._post_data(param)
-        elif (action == self.TEST_ASSET_CONNECTIVITY):
+        elif action == self.TEST_ASSET_CONNECTIVITY:
             ret_val = self._test_connectivity(param)
-        elif (action == self.ACTION_ID_HUNT_IP):
+        elif action == self.ACTION_ID_HUNT_IP:
             ret_val = self._hunt_indicator(param)
-        elif (action == self.ACTION_ID_HUNT_FILE):
+        elif action == self.ACTION_ID_HUNT_FILE:
             ret_val = self._hunt_indicator(param)
-        elif (action == self.ACTION_ID_HUNT_HOST):
+        elif action == self.ACTION_ID_HUNT_HOST:
             ret_val = self._hunt_indicator(param, hunt_domain=True)
-        elif (action == self.ACTION_ID_HUNT_EMAIL):
+        elif action == self.ACTION_ID_HUNT_EMAIL:
             ret_val = self._hunt_indicator(param)
-        elif (action == self.ACTION_ID_HUNT_URL):
+        elif action == self.ACTION_ID_HUNT_URL:
             ret_val = self._hunt_indicator(param)
-        elif (action == self.ACTION_ID_LIST_OWNERS):
+        elif action == self.ACTION_ID_LIST_OWNERS:
             ret_val = self._list_owners(param)
-        elif (action == self.ACTION_ID_ON_POLL):
+        elif action == self.ACTION_ID_ON_POLL:
             ret_val = self._on_poll(param)
 
         return ret_val
@@ -896,7 +956,7 @@ if __name__ == '__main__':
     args = argparser.parse_args()
     session_id = None
 
-    if (args.username and args.password):
+    if args.username and args.password:
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
@@ -913,7 +973,7 @@ if __name__ == '__main__':
             print("Unable to get session id from the platform. Error: {0}".format(str(e)))
             exit(1)
 
-    if (len(sys.argv) < 2):
+    if len(sys.argv) < 2:
         print("No test json specified as input")
         exit(0)
 
@@ -925,7 +985,7 @@ if __name__ == '__main__':
         connector = ThreatconnectConnector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
+        if session_id is not None:
             in_json['user_session_token'] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
