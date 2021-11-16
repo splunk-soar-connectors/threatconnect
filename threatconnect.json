@@ -235,7 +235,7 @@
                     "order": 6
                 },
                 "attribute_value": {
-                    "description": "Value of attribute being added",
+                    "description": "Value of attribute to add",
                     "data_type": "string",
                     "order": 7
                 },
