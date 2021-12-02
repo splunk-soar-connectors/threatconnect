@@ -1412,7 +1412,7 @@
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/soupsieve-2.2.1-py3-none-any.whl"
+                "input_file": "wheels/soupsieve-2.3.1-py3-none-any.whl"
             },
             {
                 "module": "sqlparse",
@@ -1420,7 +1420,7 @@
             },
             {
                 "module": "typing_extensions",
-                "input_file": "wheels/typing_extensions-3.10.0.2-py3-none-any.whl"
+                "input_file": "wheels/typing_extensions-4.0.1-py3-none-any.whl"
             },
             {
                 "module": "urllib3",
