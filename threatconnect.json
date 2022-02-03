@@ -19,7 +19,7 @@
     ],
     "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
-    "license": "Copyright (c) 2016-2021 Splunk Inc.",
+    "license": "Copyright (c) 2016-2022 Splunk Inc.",
     "configuration": {
         "access_id": {
             "data_type": "string",
@@ -1373,7 +1373,7 @@
         "wheel": [
             {
                 "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.5-py3-none-any.whl"
+                "input_file": "wheels/py3/Django-4.0.2-py3-none-any.whl"
             },
             {
                 "module": "asgiref",
