@@ -11,7 +11,7 @@
     "product_version_regex": ".*",
     "logo": "logo_threatconnect.svg",
     "logo_dark": "logo_threatconnect_dark.svg",
-    "min_phantom_version": "4.10.0.40961",
+    "min_phantom_version": "5.1.0",
     "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
@@ -1433,7 +1433,7 @@
         "wheel": [
             {
                 "module": "Django",
-                "input_file": "wheels/py3/Django-3.2.5-py3-none-any.whl"
+                "input_file": "wheels/py3/Django-4.0.2-py3-none-any.whl"
             },
             {
                 "module": "asgiref",
@@ -1458,10 +1458,6 @@
             {
                 "module": "ipaddr",
                 "input_file": "wheels/py3/ipaddr-2.2.0-py3-none-any.whl"
-            },
-            {
-                "module": "pytz",
-                "input_file": "wheels/shared/pytz-2021.3-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
