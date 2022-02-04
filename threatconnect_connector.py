@@ -1,36 +1,49 @@
 # File: threatconnect_connector.py
-# Copyright (c) 2016-2021 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
-# without a valid written license from Splunk Inc. is PROHIBITED.
-
+# Copyright (c) 2016-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
+#
+#
 # Phantom imports
+import base64
+import hashlib
+import hmac
+import time
+
 import phantom.app as phantom
+# library imports
+import requests
+import simplejson as json
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
+from requests import Request
 
 # App-specific imports
 from threatconnect_consts import *
 
-# library imports
-import requests
-import simplejson as json
-import hmac
-from requests import Request
-import time
-import hashlib
-import base64
 try:
     import ipaddr
 except Exception:
     import ipaddress
+
 from datetime import datetime, timedelta
+
 try:
     from urllib import quote_plus
 except Exception:
     from urllib.parse import quote_plus
-from bs4 import BeautifulSoup
 
+from bs4 import BeautifulSoup
 from django.utils.dateparse import parse_datetime
 
 
@@ -159,7 +172,8 @@ class ThreatconnectConnector(BaseConnector):
     def _add_security_label(self, action_result, security_label, indicator_summary, indicator_type):
 
         # Create an endpoint specific for posting tag
-        endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + indicator_type + "/" + quote_plus(indicator_summary) + "/" + "securityLabels/" + quote_plus(security_label)
+        endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE + "/" + indicator_type + "/" + quote_plus(indicator_summary) + \
+                   "/" + "securityLabels/" + quote_plus(security_label)
 
         ret_val, response = self._make_rest_call(action_result, endpoint, rtype=THREATCONNECT_POST)
 
@@ -336,8 +350,10 @@ class ThreatconnectConnector(BaseConnector):
                 ret_val = self._add_attribute(action_result, attribute_name, attribute_value, primary_field, endpoint)
 
                 if phantom.is_fail(ret_val):
-                    return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update the attribute specified. "
-                                                                       "Please ensure the attribute_name is valid, is applicable to the indicator "
+                    return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update "
+                                                                       "the attribute specified. "
+                                                                       "Please ensure the attribute_name is valid, "
+                                                                       "is applicable to the indicator "
                                                                        "type and attribute_value is valid")
                 else:
                     # Update the summary and give a helpful response
@@ -354,9 +370,9 @@ class ThreatconnectConnector(BaseConnector):
                 ret_val = self._add_tag(action_result, tag, primary_field, endpoint)
 
                 if phantom.is_fail(ret_val):
-                    return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update the tag specified. "
-                                                                       "Please ensure the tag is valid, is applicable to the indicator "
-                                                                       "type")
+                    return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update "
+                                                                       "the tag specified. Please ensure the tag is valid, "
+                                                                       "is applicable to the indicator ")
 
                 else:
                     # Update the summary and give a helpful response
@@ -373,15 +389,16 @@ class ThreatconnectConnector(BaseConnector):
                 ret_val = self._add_security_label(action_result, security_label, primary_field, endpoint)
 
                 if phantom.is_fail(ret_val):
-                    return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update the security labels specified. "
-                                                                       "Please ensure the security labels is valid, is applicable to the indicator "
-                                                                       "type")
+                    return action_result.set_status(phantom.APP_ERROR, "Indicator created/updated, but failed to update "
+                                                                       "the security labels specified. Please ensure the security"
+                                                                       " labels is valid, is applicable to the indicator type")
 
                 else:
                     # Update the summary and give a helpful response
                     action_result.update_summary({"security_label_added": True})
 
-                    action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect.  Security Labels addition succeeded")
+                    action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect.  "
+                                                                  "Security Labels addition succeeded")
 
             action_result.add_data(response)
 
@@ -568,8 +585,9 @@ class ThreatconnectConnector(BaseConnector):
 
                         self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = start_time
 
-                        return phantom.APP_ERROR, "Some indicators may have been dropped due to max containers being smaller than the amount of indicators" \
-                                                  " in a given second.  Please increase the max_containers in order to ensure no dropped indicators."
+                        return phantom.APP_ERROR, "Some indicators may have been dropped due to max containers being " \
+                                                  "smaller than the amount of indicators in a given second.  Please increase " \
+                                                  "the max_containers in order to ensure no dropped indicators."
                     else:
                         # As long as the indicator date and the date in the state are not the same then replace it
                         self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = indicator['dateAdded']
@@ -820,7 +838,8 @@ class ThreatconnectConnector(BaseConnector):
 
         action_result.add_data(resp_json)
         message = r.text.replace('{', '{{').replace('}', '}}')
-        return RetVal( action_result.set_status( phantom.APP_ERROR, "Error from server, Status Code: {0} data returned: {1}".format(r.status_code, message)), resp_json)
+        return RetVal(action_result.set_status(phantom.APP_ERROR,
+                    "Error from server, Status Code: {0} data returned: {1}".format(r.status_code, message)), resp_json)
 
     def _process_response(self, r, action_result):
 
@@ -942,9 +961,10 @@ class ThreatconnectConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import sys
-    import pudb
     import argparse
+    import sys
+
+    import pudb
     pudb.set_trace()
 
     argparser = argparse.ArgumentParser()
@@ -952,30 +972,32 @@ if __name__ == '__main__':
     argparser.add_argument('input_test_json', help='Input Test JSON file')
     argparser.add_argument('-u', '--username', help='username', required=False)
     argparser.add_argument('-p', '--password', help='password', required=False)
+    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
+    verify = args.verify
 
     if args.username and args.password:
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
-            r = requests.get(login_url, verify=False)
+            r = requests.get(login_url, verify=verify, timeout=THREATCONNECT_DEFAULT_TIMEOUT)
             csrftoken = r.cookies['csrftoken']
             data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
             headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=verify, data=data, timeout=THREATCONNECT_DEFAULT_TIMEOUT, headers=headers)
             session_id = r2.cookies['sessionid']
 
         except Exception as e:
             print("Unable to get session id from the platform. Error: {0}".format(str(e)))
-            exit(1)
+            sys.exit(1)
 
     if len(sys.argv) < 2:
         print("No test json specified as input")
-        exit(0)
+        sys.exit(0)
 
     with open(sys.argv[1]) as f:
         in_json = f.read()
@@ -991,4 +1013,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)

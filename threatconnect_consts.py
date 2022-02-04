@@ -1,8 +1,17 @@
 # File: threatconnect_consts.py
-# Copyright (c) 2016-2021 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
-# without a valid written license from Splunk Inc. is PROHIBITED.
+# Copyright (c) 2016-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
 THREATCONNECT_CONFIG_START_TIME = "start_time"
 THREATCONNECT_JSON_CONTAINER_LIMIT = "max_containers"
 THREATCONNECT_CONFIG_POLL_NOW_CONTAINER_LIMIT = "container_count"
@@ -11,7 +20,7 @@ THREATCONNECT_JSON_LAST_DATE_TIME = "last_date_time"
 THREATCONNECT_BASE_URL = "base_url"
 THREATCONNECT_CONFIG_LICENSE_TYPE = "license_type"
 THREATCONNECT_CONFIG_ACCESS_ID = "access_id"
-THREATCONNECT_CONFIG_SECRET_KEY = "secret_key"
+THREATCONNECT_CONFIG_SECRET_KEY = "secret_key"  # pragma: allowlist secret
 THREATCONNECT_ERR_SERVER_CONNECTION = "Unable to successfully make the REST call"
 THREATCONNECT_ERR_JSON_PARSE = "Unable to successfully parse the JSON response"
 THREATCONNECT_JSON_PRIMARY_FIELD = "primary_field"
@@ -62,3 +71,4 @@ THREATCONNECT_JSON_ATTRIBUTE_VALUE = "attribute_value"
 THREATCONNECT_JSON_INDICATOR_ID = "indicator_id"
 THREATCONNECT_JSON_TAG = 'tag'
 THREATCONNECT_JSON_SECURITY_LABEL = 'security_label'
+THREATCONNECT_DEFAULT_TIMEOUT = 30
