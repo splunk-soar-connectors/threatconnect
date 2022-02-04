@@ -2,11 +2,11 @@
 # ThreatConnect
 
 Publisher: Splunk  
-Connector Version: 2\.2\.3  
+Connector Version: 2\.2\.5  
 Product Vendor: ThreatConnect  
 Product Name: ThreatConnect  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 4\.10\.0\.40961  
+Minimum Product Version: 5\.1\.0  
 
 This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion
 
