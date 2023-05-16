@@ -2,7 +2,7 @@
 # ThreatConnect
 
 Publisher: Splunk  
-Connector Version: 2.2.5  
+Connector Version: 2.2.6  
 Product Vendor: ThreatConnect  
 Product Name: ThreatConnect  
 Product Version Supported (regex): ".\*"  
