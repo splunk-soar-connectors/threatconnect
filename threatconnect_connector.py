@@ -182,6 +182,26 @@ class ThreatconnectConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
+    def _hunt_file(self, param):
+        # _hunt_file action
+        self._hunt_indicator(param)
+
+    def _hunt_ip(self, param):
+        # _hunt_ip action
+        self._hunt_indicator(param)
+
+    def _hunt_url(self, param):
+        # _hunt_url action
+        self._hunt_indicator(param)
+
+    def _hunt_email(self, param):
+        # _hunt_email action
+        self._hunt_indicator(param)
+
+    def _hunt_host(self, param, hunt_domain=False):
+        # _hunt_host action
+        self._hunt_indicator(param, hunt_domain)
+
     def _hunt_indicator(self, params, hunt_domain=False):
 
         action_result = self.add_action_result(ActionResult(params))
@@ -942,15 +962,15 @@ class ThreatconnectConnector(BaseConnector):
         elif action == self.TEST_ASSET_CONNECTIVITY:
             ret_val = self._test_connectivity(param)
         elif action == self.ACTION_ID_HUNT_IP:
-            ret_val = self._hunt_indicator(param)
+            ret_val = self._hunt_ip(param)
         elif action == self.ACTION_ID_HUNT_FILE:
-            ret_val = self._hunt_indicator(param)
+            ret_val = self._hunt_file(param)
         elif action == self.ACTION_ID_HUNT_HOST:
-            ret_val = self._hunt_indicator(param, hunt_domain=True)
+            ret_val = self._hunt_host(param, hunt_domain=True)
         elif action == self.ACTION_ID_HUNT_EMAIL:
-            ret_val = self._hunt_indicator(param)
+            ret_val = self._hunt_email(param)
         elif action == self.ACTION_ID_HUNT_URL:
-            ret_val = self._hunt_indicator(param)
+            ret_val = self._hunt_url(param)
         elif action == self.ACTION_ID_LIST_OWNERS:
             ret_val = self._list_owners(param)
         elif action == self.ACTION_ID_ON_POLL:
