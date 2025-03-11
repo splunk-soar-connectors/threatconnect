@@ -1,6 +1,6 @@
 # File: threatconnect_consts.py
 #
-# Copyright (c) 2016-2023 Splunk Inc.
+# Copyright (c) 2016-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ THREATCONNECT_INDICATOR_FIELD_HOST = "Host"
 THREATCONNECT_INDICATOR_FIELD_URL = "URL"
 THREATCONNECT_API_URL = "{base}/v3"
 THREATCONNECT_SANDBOX_API_URL = "{base}/api/v3"
-THREATCONNECT_STATUS_FAILURE = 'Failure'
+THREATCONNECT_STATUS_FAILURE = "Failure"
 THREATCONNECT_NO_ENDPOINT_ERR = "Could not resolve primary_field parameter type"
 THREATCONNECT_DEFAULT_CONTAINER_COUNT = 10
 THREATCONNECT_DEFAULT_ARTIFACT_COUNT = 10
@@ -70,9 +70,9 @@ THREATCONNECT_JSON_ATTRIBUTE = "attribute"
 THREATCONNECT_JSON_ATTRIBUTE_NAME = "attribute_name"
 THREATCONNECT_JSON_ATTRIBUTE_VALUE = "attribute_value"
 THREATCONNECT_JSON_INDICATOR_ID = "indicator_id"
-THREATCONNECT_JSON_TAG = 'tag'
-THREATCONNECT_JSON_SECURITY_LABEL = 'security_label'
-THREATCONNECT_TAGS = 'tags'
-THREATCONNECT_SECURITY_LABEL = 'securityLabels'
+THREATCONNECT_JSON_TAG = "tag"
+THREATCONNECT_JSON_SECURITY_LABEL = "security_label"
+THREATCONNECT_TAGS = "tags"
+THREATCONNECT_SECURITY_LABEL = "securityLabels"
 THREATCONNECT_ATTRIBUTE = "attributes"
 THREATCONNECT_DEFAULT_TIMEOUT = 30

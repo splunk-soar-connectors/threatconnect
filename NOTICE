@@ -1,19 +1,7 @@
 Splunk SOAR ThreatConnect
-Copyright (c) 2016-2023 Splunk Inc.
+Copyright (c) 2016-2025 Splunk Inc.
 
 Third-party Software Attributions:
-
-Library: beautifulsoup4
-Version: 4.9.1
-License: MIT
-Copyright 2004-2017 Leonard Richardson
-Copyright 2004-2019 Leonard Richardson
-Copyright 2018 Isaac Muse
-
-Library: ipaddr
-Version: 2.2.0
-License: Apache 2.0
-Copyright 2008 Google Inc
 
 Library: simplejson
 Version: 3.17.2

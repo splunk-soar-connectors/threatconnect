@@ -1,6 +1,6 @@
 # File: threatconnect_connector.py
 #
-# Copyright (c) 2016-2023 Splunk Inc.
+# Copyright (c) 2016-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,27 +18,23 @@
 import base64
 import hashlib
 import hmac
+import ipaddress
 import time
+from datetime import datetime, timedelta
 
 import phantom.app as phantom
+
 # library imports
 import requests
 import simplejson as json
+from bs4 import BeautifulSoup
+from django.utils.dateparse import parse_datetime
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 from requests import Request
 
 # App-specific imports
 from threatconnect_consts import *
-
-import ipaddress
-
-from datetime import datetime, timedelta
-
-from urllib.parse import quote_plus
-
-from bs4 import BeautifulSoup
-from django.utils.dateparse import parse_datetime
 
 
 class RetVal(tuple):
@@ -91,9 +87,13 @@ class ThreatconnectConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        if not resp_json['status']:
-            return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
-        elif resp_json['status'] != "Success":
+        if not resp_json["status"]:
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                "There was an error in parsing the response",
+                resp_json,
+            )
+        elif resp_json["status"] != "Success":
             return action_result.set_status(phantom.APP_ERROR, "Test Connectivity Failed", resp_json)
 
         self.save_progress("Test Connectivity Passed")
@@ -113,14 +113,18 @@ class ThreatconnectConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        if not resp_json.get('status'):
-            return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
-        elif resp_json.get('status') != "Success":
+        if not resp_json.get("status"):
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                "There was an error in parsing the response",
+                resp_json,
+            )
+        elif resp_json.get("status") != "Success":
             return action_result.set_status(phantom.APP_ERROR, "Unable to List Owners", resp_json)
 
         self.save_progress("List owners succeeded.")
         action_result.add_data(resp_json)
-        total_objects = int(resp_json['count'])
+        total_objects = int(resp_json["count"])
         action_result.set_summary({"num_owners": total_objects})
 
         return action_result.set_status(phantom.APP_SUCCESS, "List owners succeeded")
@@ -153,7 +157,7 @@ class ThreatconnectConnector(BaseConnector):
         indicator_mapping = {
             THREATCONNECT_JSON_FILE: THREATCONNECT_INDICATOR_FIELD_FILE,
             THREATCONNECT_JSON_URL: THREATCONNECT_INDICATOR_FIELD_URL,
-            THREATCONNECT_JSON_EMAIL: THREATCONNECT_INDICATOR_FIELD_EMAIL
+            THREATCONNECT_JSON_EMAIL: THREATCONNECT_INDICATOR_FIELD_EMAIL,
         }
 
         for key, indicator_type in indicator_mapping.items():
@@ -168,13 +172,22 @@ class ThreatconnectConnector(BaseConnector):
                     return action_result.set_status(phantom.APP_ERROR, "Parameter 'ip' failed validation")
             elif hunt_me := params.get(THREATCONNECT_JSON_DOMAIN):
                 if phantom.is_domain(hunt_me):
-                    indicator_to_hunt, indicator_type = hunt_me, THREATCONNECT_INDICATOR_FIELD_HOST
+                    indicator_to_hunt, indicator_type = (
+                        hunt_me,
+                        THREATCONNECT_INDICATOR_FIELD_HOST,
+                    )
                 elif phantom.is_url(hunt_me):
-                    indicator_to_hunt, indicator_type = hunt_me, THREATCONNECT_INDICATOR_FIELD_URL
+                    indicator_to_hunt, indicator_type = (
+                        hunt_me,
+                        THREATCONNECT_INDICATOR_FIELD_URL,
+                    )
                 else:
                     return action_result.set_status(phantom.APP_ERROR, "Could not resolve parameter type")
 
-        payload = {"fields": [], "tql": f"typeName in ('{indicator_type}') and summary in ('{indicator_to_hunt}')"}
+        payload = {
+            "fields": [],
+            "tql": f"typeName in ('{indicator_type}') and summary in ('{indicator_to_hunt}')",
+        }
 
         # Mapping parameter keys to corresponding fields
         indicator_field_mappings = {
@@ -190,41 +203,57 @@ class ThreatconnectConnector(BaseConnector):
             if isinstance(owners, list):
                 owners_list = owners
             else:
-                owners_list = [owner.strip() for owner in owners.replace(';', ',').split(',')]
+                owners_list = [owner.strip() for owner in owners.replace(";", ",").split(",")]
 
             payload["tql"] += f" and ownerName in ({', '.join(map(repr, owners_list))})"
 
         # Make the rest call
-        ret_val, response = self._make_rest_call(action_result, endpoint=THREATCONNECT_ENDPOINT_INDICATOR_BASE, params=payload)
+        ret_val, response = self._make_rest_call(
+            action_result,
+            endpoint=THREATCONNECT_ENDPOINT_INDICATOR_BASE,
+            params=payload,
+        )
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        if response['status'] == THREATCONNECT_STATUS_FAILURE:
-            return action_result.set_status(phantom.APP_ERROR, "Response failed", response['message'])
+        if response["status"] == THREATCONNECT_STATUS_FAILURE:
+            return action_result.set_status(phantom.APP_ERROR, "Response failed", response["message"])
 
         action_result.add_data(response)
-        action_result.set_summary({"total_objects": len(response['data'])})
+        action_result.set_summary({"total_objects": len(response["data"])})
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _create_payload_for_post_data(self, action_result, params):
         primary_field = params[THREATCONNECT_JSON_PRIMARY_FIELD]
-        body = {"rating": params.get(THREATCONNECT_JSON_RATING), "confidence": params.get(THREATCONNECT_JSON_CONFIDENCE)}
+        body = {
+            "rating": params.get(THREATCONNECT_JSON_RATING),
+            "confidence": params.get(THREATCONNECT_JSON_CONFIDENCE),
+        }
 
         # Process primary field(s)
-        values = [v.strip() for v in primary_field.split(',')]
+        values = [v.strip() for v in primary_field.split(",")]
         for value in values:
             value_type, indicator_type = self._get_data_type(value)
             if phantom.is_fail(value_type):
-                return action_result.set_status(phantom.APP_ERROR, indicator_type), None, None
+                return (
+                    action_result.set_status(phantom.APP_ERROR, indicator_type),
+                    None,
+                    None,
+                )
             body[value_type] = value
 
         body["type"] = indicator_type
 
         # Add additional fields based on type
         if indicator_type == THREATCONNECT_INDICATOR_FIELD_HOST:
-            body.update({"dnsActive": params.get(THREATCONNECT_JSON_DNSACTIVE), "whoisActive": params.get(THREATCONNECT_JSON_WHOISACTIVE)})
+            body.update(
+                {
+                    "dnsActive": params.get(THREATCONNECT_JSON_DNSACTIVE),
+                    "whoisActive": params.get(THREATCONNECT_JSON_WHOISACTIVE),
+                }
+            )
         elif indicator_type == THREATCONNECT_INDICATOR_FIELD_FILE:
             body["size"] = params.get(THREATCONNECT_JSON_SIZE)
 
@@ -232,7 +261,10 @@ class ThreatconnectConnector(BaseConnector):
         params_fields = {
             THREATCONNECT_TAGS: THREATCONNECT_JSON_TAG,
             THREATCONNECT_SECURITY_LABEL: THREATCONNECT_JSON_SECURITY_LABEL,
-            THREATCONNECT_ATTRIBUTE: (THREATCONNECT_JSON_ATTRIBUTE_NAME, THREATCONNECT_JSON_ATTRIBUTE_VALUE)
+            THREATCONNECT_ATTRIBUTE: (
+                THREATCONNECT_JSON_ATTRIBUTE_NAME,
+                THREATCONNECT_JSON_ATTRIBUTE_VALUE,
+            ),
         }
 
         param = {"fields": []}
@@ -242,7 +274,15 @@ class ThreatconnectConnector(BaseConnector):
                 attribute_name, attribute_value = params.get(value[0]), params.get(value[1])
                 if attribute_name and attribute_value:
                     param["fields"].append(key)
-                    body[key] = {"data": [{"type": attribute_name, "value": attribute_value, "default": True}]}
+                    body[key] = {
+                        "data": [
+                            {
+                                "type": attribute_name,
+                                "value": attribute_value,
+                                "default": True,
+                            }
+                        ]
+                    }
             else:
                 field_value = params.get(value)
                 if field_value:
@@ -288,14 +328,19 @@ class ThreatconnectConnector(BaseConnector):
 
         else:
 
-            self._container_limit = int(config.get(THREATCONNECT_JSON_CONTAINER_LIMIT, THREATCONNECT_CONTAINER_LIMIT_DEFAULT))
+            self._container_limit = int(
+                config.get(
+                    THREATCONNECT_JSON_CONTAINER_LIMIT,
+                    THREATCONNECT_CONTAINER_LIMIT_DEFAULT,
+                )
+            )
 
             num_of_days = int(config.get(THREATCONNECT_JSON_DEF_NUM_DAYS, THREATCONNECT_DAYS_TO_POLL))
 
-            if self._state.get('first_run', True):
+            if self._state.get("first_run", True):
 
                 # Only goes here when its the first time polling with on_poll
-                self._state['first_run'] = False
+                self._state["first_run"] = False
 
                 start_time = self._first_poll(num_of_days)
                 self.debug_print(f"Ishan first_run start_time : {start_time}")
@@ -331,13 +376,13 @@ class ThreatconnectConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, "Polling has succeeded")
 
     def _first_poll(self, number_of_days):
-        '''
+        """
         First poll will get the UNIX time for number_of_days ago and then convert it into zulu format
-        '''
+        """
         return datetime.utcfromtimestamp(time.time() - (number_of_days * THREATCONNECT_SECONDS_IN_A_DAY)).strftime(DATETIME_FORMAT)
 
     def _create_containers(self, resp_json, start_time):
-        """ Returns 2 values, use RetVal """
+        """Returns 2 values, use RetVal"""
 
         # List of indicators that have been passed over... To be reversed later when written yanno????
         possible_indicators = []
@@ -346,11 +391,11 @@ class ThreatconnectConnector(BaseConnector):
         start_time_unix = int(parse_datetime(start_time).strftime("%s"))
 
         # Iterate through all the indicators starting at the top of the list (which should be most recent)
-        for indicator in resp_json['data']:
-            indicator['dateAdded'] = parse_datetime(indicator['dateAdded']).strftime(DATETIME_FORMAT)
+        for indicator in resp_json["data"]:
+            indicator["dateAdded"] = parse_datetime(indicator["dateAdded"]).strftime(DATETIME_FORMAT)
 
             # Convert the indicator's dateAdded string to a UNIX timestamp to make life easier for everyone
-            indicator_date_added_unix = int(parse_datetime(indicator['dateAdded']).strftime("%s"))
+            indicator_date_added_unix = int(parse_datetime(indicator["dateAdded"]).strftime("%s"))
 
             # Add the indicator to save it for later because runtime is important!!!
             possible_indicators.append(indicator)
@@ -378,24 +423,24 @@ class ThreatconnectConnector(BaseConnector):
         return RetVal(phantom.APP_SUCCESS, "Success")
 
     def _iterate_indicators(self, indicator_list):
-        '''
+        """
         Iterates through the recorded indicators in to ingest the correct containers count
-        '''
+        """
         container_limit = self._container_limit if self._container_limit < len(indicator_list) else len(indicator_list)
 
         successful_container_count = 0
 
-        beginning_of_polling_date = indicator_list[-1]['dateAdded']
+        beginning_of_polling_date = indicator_list[-1]["dateAdded"]
 
         for indicator in reversed(indicator_list):
 
             # Required fields that are present in every Indicator
             required_fields = {
-                "summary": str(indicator['summary']),
-                "indicator_type": str(indicator['type']).lower(),
-                "date_created": str(indicator['dateAdded']),
-                "date_modified": str(indicator['lastModified']),
-                "indicator_id": indicator['id']
+                "summary": str(indicator["summary"]),
+                "indicator_type": str(indicator["type"]).lower(),
+                "date_created": str(indicator["dateAdded"]),
+                "date_modified": str(indicator["lastModified"]),
+                "indicator_id": indicator["id"],
             }
 
             # Optional fields that are not present in every indicator but we want to ingest them anyways
@@ -406,7 +451,7 @@ class ThreatconnectConnector(BaseConnector):
                 "threatAssessConfidence": indicator.get("threatAssessConfidence"),
                 "md5": indicator.get("md5"),
                 "sha1": indicator.get("sha1"),
-                "sha256": indicator.get("sha256")
+                "sha256": indicator.get("sha256"),
             }
 
             # Get the needed artifact details
@@ -416,7 +461,14 @@ class ThreatconnectConnector(BaseConnector):
             container, artifact = self._get_base_dicts(required_fields, cef_name)
 
             # Add any additional CEF fields to the artifact
-            artifact = self._get_optional_cef_fields(required_fields, artifact, optional_cef_fields, cef_name, cef_field, cef_type)
+            artifact = self._get_optional_cef_fields(
+                required_fields,
+                artifact,
+                optional_cef_fields,
+                cef_name,
+                cef_field,
+                cef_type,
+            )
 
             # Create the container
             ret_val, container_message, id = self.save_container(container)
@@ -426,7 +478,7 @@ class ThreatconnectConnector(BaseConnector):
                 successful_container_count += 1
 
             # Pull the ID from the container and add it to the artifact
-            artifact['container_id'] = id
+            artifact["container_id"] = id
 
             # Add the artifact to that container
             ret_val, artifact_message, id = self.save_artifact(artifact)
@@ -443,88 +495,103 @@ class ThreatconnectConnector(BaseConnector):
                     if date_to_use is None:
                         date_to_use = beginning_of_polling_date
                         self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = date_to_use
-                    elif date_to_use == indicator['dateAdded']:
-                        start_time = (parse_datetime(indicator['dateAdded']) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
+                    elif date_to_use == indicator["dateAdded"]:
+                        start_time = (parse_datetime(indicator["dateAdded"]) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
 
                         self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = start_time
 
-                        return phantom.APP_ERROR, "Some indicators may have been dropped due to max containers being " \
-                                                  "smaller than the amount of indicators in a given second.  Please increase " \
-                                                  "the max_containers in order to ensure no dropped indicators."
+                        return (
+                            phantom.APP_ERROR,
+                            "Some indicators may have been dropped due to max containers being "
+                            "smaller than the amount of indicators in a given second.  Please increase "
+                            "the max_containers in order to ensure no dropped indicators.",
+                        )
                     else:
                         # As long as the indicator date and the date in the state are not the same then replace it
-                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = indicator['dateAdded']
+                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = indicator["dateAdded"]
                 break
 
-        return phantom.APP_SUCCESS, "Success" if successful_container_count else "No new indicators found"
+        return phantom.APP_SUCCESS, ("Success" if successful_container_count else "No new indicators found")
 
-    def _get_optional_cef_fields(self, required_fields, artifact_base, optional_cef_fields, cef_name, cef_field, cef_type):
+    def _get_optional_cef_fields(
+        self,
+        required_fields,
+        artifact_base,
+        optional_cef_fields,
+        cef_name,
+        cef_field,
+        cef_type,
+    ):
 
         updated_artifact = artifact_base
-        summary = required_fields['summary']
+        summary = required_fields["summary"]
 
         # Add the common optional fields first
-        if optional_cef_fields['rating']:
-            updated_artifact['cef'].update({'rating': str(optional_cef_fields['rating'])})
-        if optional_cef_fields['confidence']:
-            updated_artifact['cef'].update({'confidence': optional_cef_fields['confidence']})
-        if optional_cef_fields['threatAssessRating']:
-            updated_artifact['cef'].update({'threatAssessRating': optional_cef_fields['threatAssessRating']})
-        if optional_cef_fields['threatAssessConfidence']:
-            updated_artifact['cef'].update({'threatAssessConfidence': optional_cef_fields['threatAssessConfidence']})
-        if optional_cef_fields['md5']:
-            updated_artifact['cef'].update({'fileHashMd5': optional_cef_fields['md5']})
-            updated_artifact['cef_types'].update({'fileHashMd5': ["md5"]})
-        if optional_cef_fields['sha1']:
-            updated_artifact['cef'].update({'fileHashSha1': optional_cef_fields['sha1']})
-            updated_artifact['cef_types'].update({'fileHashSha1': ["sha1"]})
-        if optional_cef_fields['sha256']:
-            updated_artifact['cef'].update({'fileHashSha256': optional_cef_fields['sha256']})
-            updated_artifact['cef_types'].update({'fileHashSha256': ["sha256"]})
+        if optional_cef_fields["rating"]:
+            updated_artifact["cef"].update({"rating": str(optional_cef_fields["rating"])})
+        if optional_cef_fields["confidence"]:
+            updated_artifact["cef"].update({"confidence": optional_cef_fields["confidence"]})
+        if optional_cef_fields["threatAssessRating"]:
+            updated_artifact["cef"].update({"threatAssessRating": optional_cef_fields["threatAssessRating"]})
+        if optional_cef_fields["threatAssessConfidence"]:
+            updated_artifact["cef"].update({"threatAssessConfidence": optional_cef_fields["threatAssessConfidence"]})
+        if optional_cef_fields["md5"]:
+            updated_artifact["cef"].update({"fileHashMd5": optional_cef_fields["md5"]})
+            updated_artifact["cef_types"].update({"fileHashMd5": ["md5"]})
+        if optional_cef_fields["sha1"]:
+            updated_artifact["cef"].update({"fileHashSha1": optional_cef_fields["sha1"]})
+            updated_artifact["cef_types"].update({"fileHashSha1": ["sha1"]})
+        if optional_cef_fields["sha256"]:
+            updated_artifact["cef"].update({"fileHashSha256": optional_cef_fields["sha256"]})
+            updated_artifact["cef_types"].update({"fileHashSha256": ["sha256"]})
 
         # Add the indicator under the cef field cn1 if the type could not be determined
         if not cef_name and not cef_field and not cef_type:
-            updated_artifact['cef'].update({'ioc': required_fields['summary']})
+            updated_artifact["cef"].update({"ioc": required_fields["summary"]})
 
         # Specific formatting for CIDR indicators
         elif cef_name == "CIDR Artifact":
-            updated_artifact['cef'].update({
-                cef_field[0]: required_fields['summary'].split("/")[0],
-                cef_field[1]: required_fields['summary'].split("/")[1],
-                cef_field[2]: required_fields['summary']
-            })
-            updated_artifact['cef_types'] = {
+            updated_artifact["cef"].update(
+                {
+                    cef_field[0]: required_fields["summary"].split("/")[0],
+                    cef_field[1]: required_fields["summary"].split("/")[1],
+                    cef_field[2]: required_fields["summary"],
+                }
+            )
+            updated_artifact["cef_types"] = {
                 cef_field[0]: [cef_type[0]],
-                cef_field[2]: [cef_type[2]]
+                cef_field[2]: [cef_type[2]],
             }
 
         # Specific formatting for Registry Key indicators
         elif cef_name == "Registry Key Artifact":
-            registry, value_name, value_type = required_fields['summary'].split(" : ")
-            updated_artifact['cef'].update({
-                "registryKey": registry,
-                "registryValue": value_name,
-                "registryType": value_type
-            })
+            registry, value_name, value_type = required_fields["summary"].split(" : ")
+            updated_artifact["cef"].update(
+                {
+                    "registryKey": registry,
+                    "registryValue": value_name,
+                    "registryType": value_type,
+                }
+            )
 
         # Final clause if the cef name is not listed above and if the indicator is not a file
         else:
-            updated_artifact['cef'].update({cef_field: summary})
+            updated_artifact["cef"].update({cef_field: summary})
             if cef_type:
-                updated_artifact['cef_types'].update({cef_field: [cef_type]})
+                updated_artifact["cef_types"].update({cef_field: [cef_type]})
 
         return updated_artifact
 
     def _get_base_dicts(self, required_fields, cef_name):
-        '''
+        """
         Creates the container and artifact dict with values that are absolutely required.
         :return: base container, base artifact
-        '''
-        indicator_id = required_fields['indicator_id']
+        """
+        indicator_id = required_fields["indicator_id"]
         container = {
-            "name": THREATCONNECT_INGEST_CONTAINER_NAME.format(summary=required_fields['summary']),
+            "name": THREATCONNECT_INGEST_CONTAINER_NAME.format(summary=required_fields["summary"]),
             "description": "Ingested indicator from ThreatConnect",
-            "source_data_identifier": indicator_id
+            "source_data_identifier": indicator_id,
         }
 
         artifact = {
@@ -534,46 +601,50 @@ class ThreatconnectConnector(BaseConnector):
             "name": cef_name,
             "source_data_identifier": indicator_id,
             "cef": {
-                'deviceCustomDate1': required_fields['date_created'],
-                'deviceCustomDate1Label': "Date Created",
-                'deviceCustomDate2': required_fields['date_modified'],
-                'deviceCustomDate2Label': "Last Modified"
+                "deviceCustomDate1": required_fields["date_created"],
+                "deviceCustomDate1Label": "Date Created",
+                "deviceCustomDate2": required_fields["date_modified"],
+                "deviceCustomDate2Label": "Last Modified",
             },
-            "cef_types": {}
+            "cef_types": {},
         }
         return container, artifact
 
     def _get_data_type(self, primary_field):
-        """ Returns two Values, use RetVal """
+        """Returns two Values, use RetVal"""
 
         try:
             ipaddress.ip_address(primary_field)
-            return RetVal('ip', THREATCONNECT_INDICATOR_FIELD_ADDRESS)
+            return RetVal("ip", THREATCONNECT_INDICATOR_FIELD_ADDRESS)
         except ValueError:
             if phantom.is_email(primary_field):
-                return RetVal('address', THREATCONNECT_INDICATOR_FIELD_EMAIL)
+                return RetVal("address", THREATCONNECT_INDICATOR_FIELD_EMAIL)
             elif phantom.is_md5(primary_field):
-                return RetVal('md5', THREATCONNECT_INDICATOR_FIELD_FILE)
+                return RetVal("md5", THREATCONNECT_INDICATOR_FIELD_FILE)
             elif phantom.is_sha1(primary_field):
-                return RetVal('sha1', THREATCONNECT_INDICATOR_FIELD_FILE)
+                return RetVal("sha1", THREATCONNECT_INDICATOR_FIELD_FILE)
             elif phantom.is_sha256(primary_field):
-                return RetVal('sha256', THREATCONNECT_INDICATOR_FIELD_FILE)
+                return RetVal("sha256", THREATCONNECT_INDICATOR_FIELD_FILE)
             elif phantom.is_url(primary_field):
-                return RetVal('text', THREATCONNECT_INDICATOR_FIELD_URL)
+                return RetVal("text", THREATCONNECT_INDICATOR_FIELD_URL)
             elif phantom.is_domain(primary_field):
                 if "." in primary_field:
-                    return RetVal('hostName', THREATCONNECT_INDICATOR_FIELD_HOST)
+                    return RetVal("hostName", THREATCONNECT_INDICATOR_FIELD_HOST)
         return RetVal(phantom.APP_ERROR, THREATCONNECT_NO_ENDPOINT_ERR)
 
     def _get_cef_details(self, required_fields):
         #  Indicator types are value checked because the rest of the indicators, to check are ones with only one type.
         # Address indicators for example will have IPv4, IPv6, etc.
-        indicator_type = required_fields['indicator_type']
-        summary = required_fields['summary']
+        indicator_type = required_fields["indicator_type"]
+        summary = required_fields["summary"]
         if indicator_type == "mutex":
             return "Mutex Artifact", "mutex", None
         if indicator_type == "cidr":
-            return "CIDR Artifact", ["deviceAddress", "cidrPrefix", "cidr"], ["ip", None, "CIDR"]
+            return (
+                "CIDR Artifact",
+                ["deviceAddress", "cidrPrefix", "cidr"],
+                ["ip", None, "CIDR"],
+            )
         elif indicator_type == "registry key":
             return "Registry Key Artifact", "registryKey", None
         elif indicator_type == "asn":
@@ -617,12 +688,16 @@ class ThreatconnectConnector(BaseConnector):
         # Autograph time
         try:
             signature_hmac = hmac.new(str(secret_key), signature_raw, digestmod=hashlib.sha256).digest()
-            authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac))
+            authorization = "TC {0}:{1}".format(api_id, base64.b64encode(signature_hmac))
         except Exception:
             signature_hmac = hmac.new(secret_key.encode(), signature_raw.encode(), digestmod=hashlib.sha256).digest()
-            authorization = 'TC {0}:{1}'.format(api_id, base64.b64encode(signature_hmac).decode())
+            authorization = "TC {0}:{1}".format(api_id, base64.b64encode(signature_hmac).decode())
 
-        header = {'Content-Type': 'application/json', 'Timestamp': timestamp_nonce, 'Authorization': authorization}
+        header = {
+            "Content-Type": "application/json",
+            "Timestamp": timestamp_nonce,
+            "Authorization": authorization,
+        }
 
         return header
 
@@ -631,7 +706,10 @@ class ThreatconnectConnector(BaseConnector):
         if 200 <= response.status_code < 205:
             return RetVal(phantom.APP_SUCCESS, {})
 
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
+        return RetVal(
+            action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"),
+            None,
+        )
 
     def _process_html_response(self, response, action_result):
 
@@ -641,16 +719,15 @@ class ThreatconnectConnector(BaseConnector):
         try:
             soup = BeautifulSoup(response.text, "html.parser")
             error_text = soup.text
-            split_lines = error_text.split('\n')
+            split_lines = error_text.split("\n")
             split_lines = [x.strip() for x in split_lines if x.strip()]
-            error_text = '\n'.join(split_lines)
+            error_text = "\n".join(split_lines)
         except Exception:
             error_text = "Cannot parse error details"
 
-        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-                error_text)
+        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, error_text)
 
-        message = message.replace('{', '{{').replace('}', '}}')
+        message = message.replace("{", "{{").replace("}", "}}")
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -660,29 +737,37 @@ class ThreatconnectConnector(BaseConnector):
         try:
             resp_json = r.json()
         except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse response as JSON", e), None)
+            return RetVal(
+                action_result.set_status(phantom.APP_ERROR, "Unable to parse response as JSON", e),
+                None,
+            )
 
         if 200 <= r.status_code < 205:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         action_result.add_data(resp_json)
-        message = r.text.replace('{', '{{').replace('}', '}}')
-        return RetVal(action_result.set_status(phantom.APP_ERROR,
-                    "Error from server, Status Code: {0} data returned: {1}".format(r.status_code, message)), resp_json)
+        message = r.text.replace("{", "{{").replace("}", "}}")
+        return RetVal(
+            action_result.set_status(
+                phantom.APP_ERROR,
+                "Error from server, Status Code: {0} data returned: {1}".format(r.status_code, message),
+            ),
+            resp_json,
+        )
 
     def _process_response(self, r, action_result):
 
         # store the r_text in debug data, it will get dumped in the logs if an error occurs
-        if hasattr(action_result, 'add_debug_data'):
-            action_result.add_debug_data({'r_text': r.text})
-            action_result.add_debug_data({'r_headers': r.headers})
-            action_result.add_debug_data({'r_status_code': r.status_code})
+        if hasattr(action_result, "add_debug_data"):
+            action_result.add_debug_data({"r_text": r.text})
+            action_result.add_debug_data({"r_headers": r.headers})
+            action_result.add_debug_data({"r_status_code": r.status_code})
 
         # There are just too many differences in the response to handle all of them in the same function
-        if 'json' in r.headers.get('Content-Type', ''):
+        if "json" in r.headers.get("Content-Type", ""):
             return self._process_json_response(r, action_result)
 
-        if 'html' in r.headers.get('Content-Type', ''):
+        if "html" in r.headers.get("Content-Type", ""):
             return self._process_html_response(r, action_result)
 
         # it's not an html or json, handle if it is a successfull empty reponse
@@ -691,12 +776,13 @@ class ThreatconnectConnector(BaseConnector):
 
         # everything else is actually an error at this point
         message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+            r.status_code, r.text.replace("{", "{{").replace("}", "}}")
+        )
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
     def _make_rest_call(self, action_result, endpoint, params={}, body={}, rtype=THREATCONNECT_GET):
-        """ Returns 2 values, use RetVal """
+        """Returns 2 values, use RetVal"""
 
         url = self._get_url() + endpoint
 
@@ -705,21 +791,39 @@ class ThreatconnectConnector(BaseConnector):
         try:
             headers = self._create_header(endpoint, params=params, rtype=rtype, json=body)
         except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
+            return RetVal(
+                action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))),
+                None,
+            )
         try:
             request_func = getattr(requests, rtype)
         except AttributeError:
             # Set the action_result status to error, the handler function will most probably return as is
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unsupported method: {0}".format(rtype)), None)
+            return RetVal(
+                action_result.set_status(phantom.APP_ERROR, "Unsupported method: {0}".format(rtype)),
+                None,
+            )
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))), None)
+            return RetVal(
+                action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))),
+                None,
+            )
 
         try:
-            response = request_func(url, params=params, json=body, headers=headers, verify=config.get('verify_server_cert', False))
+            response = request_func(
+                url,
+                params=params,
+                json=body,
+                headers=headers,
+                verify=config.get("verify_server_cert", False),
+            )
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))), None)
+            return RetVal(
+                action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))),
+                None,
+            )
 
         # Added line
         try:
@@ -732,7 +836,7 @@ class ThreatconnectConnector(BaseConnector):
     def _get_url(self):
 
         config = self.get_config()
-        if 'sandbox.threatconnect.com' in config[THREATCONNECT_BASE_URL]:
+        if "sandbox.threatconnect.com" in config[THREATCONNECT_BASE_URL]:
             return THREATCONNECT_SANDBOX_API_URL.format(base=config[THREATCONNECT_BASE_URL]) + "/"
         else:
             return THREATCONNECT_API_URL.format(base=config[THREATCONNECT_BASE_URL]) + "/"
@@ -740,15 +844,21 @@ class ThreatconnectConnector(BaseConnector):
     def initialize(self):
         self._state = self.load_state()
         config = self.get_config()
-        config[THREATCONNECT_BASE_URL] = config[THREATCONNECT_BASE_URL].rstrip('/')
+        config[THREATCONNECT_BASE_URL] = config[THREATCONNECT_BASE_URL].rstrip("/")
 
         max_containers = config.get("max_containers", None)
         if not (max_containers is None or self.is_positive_non_zero_int(max_containers)):
-            return self.set_status(phantom.APP_ERROR, 'Please provide a positive, non zero integer in config parameter "max_containers"')
+            return self.set_status(
+                phantom.APP_ERROR,
+                'Please provide a positive, non zero integer in config parameter "max_containers"',
+            )
 
         interval_days = config.get("interval_days", None)
         if not (interval_days is None or self.is_positive_non_zero_int(interval_days)):
-            return self.set_status(phantom.APP_ERROR, 'Please provide a positive, non zero integer in config parameter "interval_days"')
+            return self.set_status(
+                phantom.APP_ERROR,
+                'Please provide a positive, non zero integer in config parameter "interval_days"',
+            )
 
         return phantom.APP_SUCCESS
 
@@ -757,10 +867,10 @@ class ThreatconnectConnector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def handle_action(self, param):
-        '''
+        """
         This function handles all of the actions that the app can handle.
 
-        '''
+        """
         action = self.get_action_identifier()
 
         ret_val = phantom.APP_SUCCESS
@@ -788,20 +898,28 @@ class ThreatconnectConnector(BaseConnector):
         return ret_val
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     import argparse
     import sys
 
     import pudb
+
     pudb.set_trace()
 
     argparser = argparse.ArgumentParser()
 
-    argparser.add_argument('input_test_json', help='Input Test JSON file')
-    argparser.add_argument('-u', '--username', help='username', required=False)
-    argparser.add_argument('-p', '--password', help='password', required=False)
-    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
+    argparser.add_argument("input_test_json", help="Input Test JSON file")
+    argparser.add_argument("-u", "--username", help="username", required=False)
+    argparser.add_argument("-p", "--password", help="password", required=False)
+    argparser.add_argument(
+        "-v",
+        "--verify",
+        action="store_true",
+        help="verify",
+        required=False,
+        default=False,
+    )
 
     args = argparser.parse_args()
     session_id = None
@@ -812,13 +930,26 @@ if __name__ == '__main__':
         try:
             print("Accessing the Login page")
             r = requests.get(login_url, verify=verify, timeout=THREATCONNECT_DEFAULT_TIMEOUT)
-            csrftoken = r.cookies['csrftoken']
-            data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
-            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
+            csrftoken = r.cookies["csrftoken"]
+            data = {
+                "username": args.username,
+                "password": args.password,
+                "csrfmiddlewaretoken": csrftoken,
+            }
+            headers = {
+                "Cookie": "csrftoken={0}".format(csrftoken),
+                "Referer": login_url,
+            }
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=verify, data=data, timeout=THREATCONNECT_DEFAULT_TIMEOUT, headers=headers)
-            session_id = r2.cookies['sessionid']
+            r2 = requests.post(
+                login_url,
+                verify=verify,
+                data=data,
+                timeout=THREATCONNECT_DEFAULT_TIMEOUT,
+                headers=headers,
+            )
+            session_id = r2.cookies["sessionid"]
 
         except Exception as e:
             print("Unable to get session id from the platform. Error: {0}".format(str(e)))
@@ -837,7 +968,7 @@ if __name__ == '__main__':
         connector.print_progress_message = True
 
         if session_id is not None:
-            in_json['user_session_token'] = session_id
+            in_json["user_session_token"] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
