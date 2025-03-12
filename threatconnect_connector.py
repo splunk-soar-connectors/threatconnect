@@ -145,14 +145,11 @@ class ThreatconnectConnector(BaseConnector):
         # _hunt_email action
         self._hunt_indicator(param)
 
-    def _hunt_host(self, param, hunt_domain=False):
+    def _hunt_host(self, param):
         # _hunt_host action
-        self._hunt_indicator(param, hunt_domain)
+        self._hunt_indicator(param)
 
-    def _hunt_indicator(self, params, hunt_domain=False):
-
-        action_result = self.add_action_result(ActionResult(params))
-
+    def _create_payload_for_hunt_indicator(self, action_result, params):
         # Mapping of parameter keys to their corresponding indicator types
         indicator_mapping = {
             THREATCONNECT_JSON_FILE: THREATCONNECT_INDICATOR_FIELD_FILE,
@@ -169,7 +166,7 @@ class ThreatconnectConnector(BaseConnector):
                     ipaddress.ip_address(indicator_to_hunt)
                     indicator_type = THREATCONNECT_INDICATOR_FIELD_ADDRESS
                 except ValueError:
-                    return action_result.set_status(phantom.APP_ERROR, "Parameter 'ip' failed validation")
+                    return action_result.set_status(phantom.APP_ERROR, "Parameter 'ip' failed validation"), None
             elif hunt_me := params.get(THREATCONNECT_JSON_DOMAIN):
                 if phantom.is_domain(hunt_me):
                     indicator_to_hunt, indicator_type = (
@@ -182,12 +179,17 @@ class ThreatconnectConnector(BaseConnector):
                         THREATCONNECT_INDICATOR_FIELD_URL,
                     )
                 else:
-                    return action_result.set_status(phantom.APP_ERROR, "Could not resolve parameter type")
+                    return action_result.set_status(phantom.APP_ERROR, "Could not resolve parameter type"), None
 
         payload = {
             "fields": [],
-            "tql": f"typeName in ('{indicator_type}') and summary in ('{indicator_to_hunt}')",
+            "tql": f"typeName in ('{indicator_type}') and summary ",
         }
+
+        if indicator_type == THREATCONNECT_INDICATOR_FIELD_FILE:
+            payload["tql"] += f"like '%{indicator_to_hunt}%'"
+        else:
+            payload["tql"] += f"in ('{indicator_to_hunt}')"
 
         # Mapping parameter keys to corresponding fields
         indicator_field_mappings = {
@@ -203,9 +205,20 @@ class ThreatconnectConnector(BaseConnector):
             if isinstance(owners, list):
                 owners_list = owners
             else:
-                owners_list = [owner.strip() for owner in owners.replace(";", ",").split(",")]
+                owners_list = [owner.strip() for owner in owners.replace(";", ",").split(",") if owner.strip()]
 
             payload["tql"] += f" and ownerName in ({', '.join(map(repr, owners_list))})"
+
+        return phantom.APP_SUCCESS, payload
+
+    def _hunt_indicator(self, params):
+
+        action_result = self.add_action_result(ActionResult(params))
+
+        ret_val, payload = self._create_payload_for_hunt_indicator(action_result, params)
+
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
 
         # Make the rest call
         ret_val, response = self._make_rest_call(
@@ -227,24 +240,39 @@ class ThreatconnectConnector(BaseConnector):
 
     def _create_payload_for_post_data(self, action_result, params):
         primary_field = params[THREATCONNECT_JSON_PRIMARY_FIELD]
-        body = {
-            "rating": params.get(THREATCONNECT_JSON_RATING),
-            "confidence": params.get(THREATCONNECT_JSON_CONFIDENCE),
-        }
+        body = {}
+        if params.get(THREATCONNECT_JSON_RATING):
+            body["rating"] = params.get(THREATCONNECT_JSON_RATING)
+        if params.get(THREATCONNECT_JSON_CONFIDENCE):
+            body["confidence"] = params.get(THREATCONNECT_JSON_CONFIDENCE)
 
         # Process primary field(s)
-        values = [v.strip() for v in primary_field.split(",")]
-        for value in values:
-            value_type, indicator_type = self._get_data_type(value)
+        values = [v.strip() for v in primary_field.replace(";", ",").split(",") if v.strip()]
+        if len(values) > 1:
+            for value in values:
+                value_type, indicator_type = self._check_hash_type(value)
+                if phantom.is_fail(value_type):
+                    return (
+                        action_result.set_status(phantom.APP_ERROR, indicator_type),
+                        None,
+                        None,
+                    )
+                body[value_type] = value
+
+            body["type"] = indicator_type
+        elif values:
+            value_type, indicator_type = self._get_data_type(values[0])
             if phantom.is_fail(value_type):
                 return (
                     action_result.set_status(phantom.APP_ERROR, indicator_type),
                     None,
                     None,
                 )
-            body[value_type] = value
+            body[value_type] = values[0]
 
-        body["type"] = indicator_type
+            body["type"] = indicator_type
+        else:
+            return action_result.set_status(phantom.APP_ERROR, THREATCONNECT_NO_ENDPOINT_ERR), None, None
 
         # Add additional fields based on type
         if indicator_type == THREATCONNECT_INDICATOR_FIELD_HOST:
@@ -298,6 +326,9 @@ class ThreatconnectConnector(BaseConnector):
         endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE
         ret_val, body, params = self._create_payload_for_post_data(action_result=action_result, params=params)
 
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
         if not params["fields"]:
             params = {}
 
@@ -343,13 +374,11 @@ class ThreatconnectConnector(BaseConnector):
                 self._state["first_run"] = False
 
                 start_time = self._first_poll(num_of_days)
-                self.debug_print(f"Ishan first_run start_time : {start_time}")
 
             elif last_time:
 
                 # Last polled time is taken here
                 start_time = last_time
-                self.debug_print(f"Ishan start_time  : {start_time}")
 
         self.save_progress("Start time for polling: {0}".format(start_time))
 
@@ -474,7 +503,7 @@ class ThreatconnectConnector(BaseConnector):
             ret_val, container_message, id = self.save_container(container)
 
             # Increment the container count if container not dupicate
-            if "Duplicate" not in container_message:
+            if "duplicate" not in container_message.lower():
                 successful_container_count += 1
 
             # Pull the ID from the container and add it to the artifact
@@ -493,8 +522,7 @@ class ThreatconnectConnector(BaseConnector):
                     date_to_use = self._state.get(THREATCONNECT_JSON_LAST_DATE_TIME)
 
                     if date_to_use is None:
-                        date_to_use = beginning_of_polling_date
-                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = date_to_use
+                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = beginning_of_polling_date
                     elif date_to_use == indicator["dateAdded"]:
                         start_time = (parse_datetime(indicator["dateAdded"]) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
 
@@ -609,6 +637,15 @@ class ThreatconnectConnector(BaseConnector):
             "cef_types": {},
         }
         return container, artifact
+
+    def _check_hash_type(self, primary_field):
+        if phantom.is_md5(primary_field):
+            return RetVal("md5", THREATCONNECT_INDICATOR_FIELD_FILE)
+        elif phantom.is_sha1(primary_field):
+            return RetVal("sha1", THREATCONNECT_INDICATOR_FIELD_FILE)
+        elif phantom.is_sha256(primary_field):
+            return RetVal("sha256", THREATCONNECT_INDICATOR_FIELD_FILE)
+        return RetVal(phantom.APP_ERROR, THREATCONNECT_NO_ENDPOINT_ERR)
 
     def _get_data_type(self, primary_field):
         """Returns two Values, use RetVal"""
@@ -885,7 +922,7 @@ class ThreatconnectConnector(BaseConnector):
         elif action == self.ACTION_ID_HUNT_FILE:
             ret_val = self._hunt_file(param)
         elif action == self.ACTION_ID_HUNT_HOST:
-            ret_val = self._hunt_host(param, hunt_domain=True)
+            ret_val = self._hunt_host(param)
         elif action == self.ACTION_ID_HUNT_EMAIL:
             ret_val = self._hunt_email(param)
         elif action == self.ACTION_ID_HUNT_URL:

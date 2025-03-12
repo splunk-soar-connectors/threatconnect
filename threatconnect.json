@@ -15,7 +15,7 @@
     "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
-        "Threatconnect API v3 on March 10, 2024"
+        "Threatconnect API v3 on March 10, 2025"
     ],
     "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
@@ -157,7 +157,9 @@
                     "data_type": "string",
                     "example_values": [
                         "Organization Administrator"
-                    ]
+                    ],
+                    "column_name": "Owner Role",
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.data.*.permGroup",
@@ -329,20 +331,6 @@
                     "data_type": "string",
                     "example_values": [
                         "List owners succeeded"
-                    ]
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
-                    ]
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
                     ]
                 }
             ],
@@ -895,20 +883,6 @@
                     "example_values": [
                         "Data successfully posted to ThreatConnect"
                     ]
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
-                    ]
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric",
-                    "example_values": [
-                        1
-                    ]
                 }
             ],
             "render": {
@@ -1010,7 +984,13 @@
                     "data_type": "string",
                     "example_values": [
                         "123.23.124.32"
-                    ]
+                    ],
+                    "contains": [
+                        "ip",
+                        "ipv6"
+                    ],
+                    "column_name": "IP",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.data.*.tags.data.*.id",
@@ -1053,7 +1033,9 @@
                     "data_type": "numeric",
                     "example_values": [
                         3
-                    ]
+                    ],
+                    "column_name": "Rating",
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.data.*.ownerId",
@@ -1078,21 +1060,30 @@
                     "data_type": "string",
                     "example_values": [
                         "https://testxyz.threatconnect.com/#/details/indicators/11111797252348111"
-                    ]
+                    ],
+                    "contains": [
+                        "url"
+                    ],
+                    "column_order": 6,
+                    "column_name": "Web Link"
                 },
                 {
                     "data_path": "action_result.data.*.data.*.dateAdded",
                     "data_type": "string",
                     "example_values": [
                         "2025-03-08T09:35:46Z"
-                    ]
+                    ],
+                    "column_name": "Date Added",
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.data.*.ownerName",
                     "data_type": "string",
                     "example_values": [
                         "TestUser"
-                    ]
+                    ],
+                    "column_name": "Owner Name",
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.data.*.data.*.attributes.data.*.id",
@@ -1192,7 +1183,9 @@
                     "data_type": "numeric",
                     "example_values": [
                         23
-                    ]
+                    ],
+                    "column_name": "Confidence",
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.data.*.data.*.legacyLink",
@@ -1229,7 +1222,9 @@
                     "data_type": "string",
                     "example_values": [
                         "2025-03-08T09:35:46Z"
-                    ]
+                    ],
+                    "column_name": "Last Modified",
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.data.*.data.*.securityLabels.data.*.id",
@@ -1280,14 +1275,6 @@
                 {
                     "data_path": "action_result.message",
                     "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
                 }
             ],
             "render": {
@@ -1411,7 +1398,9 @@
                     "data_type": "numeric",
                     "example_values": [
                         5
-                    ]
+                    ],
+                    "column_name": "Rating",
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.data.*.data.*.ownerId",
@@ -1438,28 +1427,39 @@
                     "data_type": "string",
                     "example_values": [
                         "https://testxyz.threatconnect.com/#/details/indicators/1111799822086111"
-                    ]
+                    ],
+                    "contains": [
+                        "url"
+                    ],
+                    "column_order": 5,
+                    "column_name": "Web Link"
                 },
                 {
                     "data_path": "action_result.data.*.data.*.dateAdded",
                     "data_type": "string",
                     "example_values": [
                         "2025-03-05T13:28:46Z"
-                    ]
+                    ],
+                    "column_name": "Date Added",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.data.*.ownerName",
                     "data_type": "string",
                     "example_values": [
                         "TestUser"
-                    ]
+                    ],
+                    "column_name": "Owner Name",
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.data.*.data.*.confidence",
                     "data_type": "numeric",
                     "example_values": [
                         50
-                    ]
+                    ],
+                    "column_name": "Confidence",
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.data.*.legacyLink",
@@ -1489,7 +1489,9 @@
                     "data_type": "string",
                     "example_values": [
                         "2025-03-05T13:28:46Z"
-                    ]
+                    ],
+                    "column_name": "Last Modified",
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.status",
@@ -1505,14 +1507,6 @@
                 {
                     "data_path": "action_result.message",
                     "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
                 }
             ],
             "render": {
@@ -1615,6 +1609,24 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.data.*.rating",
+                    "data_type": "numeric",
+                    "example_values": [
+                        4
+                    ],
+                    "column_name": "Rating",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.data.*.confidence",
+                    "data_type": "numeric",
+                    "example_values": [
+                        24
+                    ],
+                    "column_name": "Confidence",
+                    "column_order": 4
+                },
+                {
                     "data_path": "action_result.data.*.data.*.tags.data.*.lastUsed",
                     "data_type": "string",
                     "example_values": [
@@ -1641,7 +1653,12 @@
                     "data_type": "string",
                     "example_values": [
                         "abcxyz@test.com"
-                    ]
+                    ],
+                    "contains": [
+                        "email"
+                    ],
+                    "column_order": 0,
+                    "column_name": "Email"
                 },
                 {
                     "data_path": "action_result.data.*.data.*.ownerId",
@@ -1665,21 +1682,30 @@
                     "data_type": "string",
                     "example_values": [
                         "https://testxyz.threatconnect.com/#/details/indicators/1111899916230111"
-                    ]
+                    ],
+                    "contains": [
+                        "url"
+                    ],
+                    "column_order": 6,
+                    "column_name": "Web Link"
                 },
                 {
                     "data_path": "action_result.data.*.data.*.dateAdded",
                     "data_type": "string",
                     "example_values": [
                         "2025-03-08T10:06:59Z"
-                    ]
+                    ],
+                    "column_name": "Date Added",
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.data.*.ownerName",
                     "data_type": "string",
                     "example_values": [
                         "TestUser"
-                    ]
+                    ],
+                    "column_name": "Owner Name",
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.data.*.data.*.attributes.data.*.id",
@@ -1809,7 +1835,9 @@
                     "data_type": "string",
                     "example_values": [
                         "2025-03-08T10:06:59Z"
-                    ]
+                    ],
+                    "column_name": "Last Modified",
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.data.*.data.*.securityLabels.data.*.id",
@@ -1867,14 +1895,6 @@
                 {
                     "data_path": "action_result.message",
                     "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
                 }
             ],
             "render": {
@@ -1991,7 +2011,9 @@
                     "data_type": "numeric",
                     "example_values": [
                         2
-                    ]
+                    ],
+                    "column_name": "Rating",
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.data.*.ownerId",
@@ -2016,21 +2038,33 @@
                     "data_type": "string",
                     "example_values": [
                         "https://testxyz.threatconnect.com/#/details/indicators/1111900049338111"
-                    ]
+                    ],
+                    "contains": [
+                        "url"
+                    ],
+                    "column_order": 6,
+                    "column_name": "Web Link"
                 },
                 {
                     "data_path": "action_result.data.*.data.*.hostName",
                     "data_type": "string",
                     "example_values": [
                         "vclub.credit"
-                    ]
+                    ],
+                    "contains": [
+                        "domain"
+                    ],
+                    "column_name": "Host Name",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.data.*.dateAdded",
                     "data_type": "string",
                     "example_values": [
                         "2025-03-08T06:44:39Z"
-                    ]
+                    ],
+                    "column_name": "Date Added",
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.data.*.dnsActive",
@@ -2045,14 +2079,18 @@
                     "data_type": "string",
                     "example_values": [
                         "TestUser"
-                    ]
+                    ],
+                    "column_name": "Owner Name",
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.data.*.data.*.confidence",
                     "data_type": "numeric",
                     "example_values": [
                         63
-                    ]
+                    ],
+                    "column_name": "Confidence",
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.data.*.data.*.legacyLink",
@@ -2090,7 +2128,9 @@
                     "data_type": "string",
                     "example_values": [
                         "2025-03-08T06:44:39Z"
-                    ]
+                    ],
+                    "column_name": "Last Modified",
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.data.*.data.*.tags.data.*.id",
@@ -2262,14 +2302,6 @@
                 {
                     "data_path": "action_result.message",
                     "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
                 }
             ],
             "render": {
@@ -2362,7 +2394,12 @@
                     "data_type": "string",
                     "example_values": [
                         "http://www.test.com/list/oz/"
-                    ]
+                    ],
+                    "contains": [
+                        "url"
+                    ],
+                    "column_name": "URL",
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.data.*.type",
@@ -2398,21 +2435,30 @@
                     "data_type": "string",
                     "example_values": [
                         "https://testxyz.threatconnect.com/#/details/indicators/2251799822191373"
-                    ]
+                    ],
+                    "contains": [
+                        "url"
+                    ],
+                    "column_order": 6,
+                    "column_name": "Web Link"
                 },
                 {
                     "data_path": "action_result.data.*.data.*.dateAdded",
                     "data_type": "string",
                     "example_values": [
                         "2025-03-07T12:16:05Z"
-                    ]
+                    ],
+                    "column_name": "Date Added",
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.data.*.ownerName",
                     "data_type": "string",
                     "example_values": [
                         "TestUser"
-                    ]
+                    ],
+                    "column_name": "Owner Name",
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.data.*.data.*.legacyLink",
@@ -2442,7 +2488,9 @@
                     "data_type": "string",
                     "example_values": [
                         "2025-03-07T12:16:05Z"
-                    ]
+                    ],
+                    "column_name": "Last Modified",
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.data.*.status",
@@ -2456,14 +2504,18 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
-                    ]
+                    ],
+                    "column_name": "Rating",
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.data.*.confidence",
                     "data_type": "numeric",
                     "example_values": [
                         60
-                    ]
+                    ],
+                    "column_name": "Confidence",
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.summary.total_objects",
@@ -2472,14 +2524,6 @@
                 {
                     "data_path": "action_result.message",
                     "data_type": "string"
-                },
-                {
-                    "data_path": "summary.total_objects",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
                 }
             ],
             "render": {

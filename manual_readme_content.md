@@ -14,7 +14,7 @@
 
 ## Playbook Backward Compatibility
 
-- In version 3.0.0 of the connector, the API endpoints were updated from V2 to V3. Additionally, three new parameters were added to the actions **'hunt ip', 'hunt file', 'hunt email', 'hunt domain',** and **'hunt url'**:
+- In version 3.0.0 of the connector, the API endpoints were updated from V2 to V3. Additionally, below three new parameters were added to the actions **'hunt ip', 'hunt file', 'hunt email', 'hunt domain',** and **'hunt url'**:
 
   - **attribute** - Retrieves Indicator attributes (default: **false**).
   - **tag** - Retrieves Indicator tags (default: **false**).

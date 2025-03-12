@@ -1,2 +1,2 @@
 **Unreleased**
-* Updated API Support V2 to V3
+* Replaced API support from V2 to V3
