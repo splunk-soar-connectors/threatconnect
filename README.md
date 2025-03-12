@@ -10,7 +10,7 @@ This app integrates with the ThreatConnect platform to provide various hunting a
 
 ## Playbook Backward Compatibility
 
-- In version 3.0.0 of the connector, the API endpoints were updated from V2 to V3. Additionally, three new parameters were added to the actions **'hunt ip', 'hunt file', 'hunt email', 'hunt domain',** and **'hunt url'**:
+- In version 3.0.0 of the connector, the API endpoints were updated from V2 to V3. Additionally, below three new parameters were added to the actions **'hunt ip', 'hunt file', 'hunt email', 'hunt domain',** and **'hunt url'**:
 
   - **attribute** - Retrieves Indicator attributes (default: **false**).
   - **tag** - Retrieves Indicator tags (default: **false**).
@@ -136,8 +136,6 @@ action_result.data.\*.status | string | | Success |
 action_result.summary.num_owners | numeric | | 16 |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | List owners succeeded |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
 
 ## action: 'post data'
 
@@ -231,8 +229,6 @@ action_result.summary.attribute_added | boolean | | False True |
 action_result.summary.indicator_created/updated | boolean | | False True |
 action_result.summary.total_objects | numeric | | 1 |
 action_result.message | string | | Data successfully posted to ThreatConnect |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
 
 ## action: 'hunt ip'
 
@@ -263,7 +259,7 @@ action_result.parameter.tag | boolean | | |
 action_result.parameter.security_label | boolean | | |
 action_result.data.\*.status | string | | Success |
 action_result.data.\*.data.\*.id | numeric | | 11111797252348111 |
-action_result.data.\*.data.\*.ip | string | | 123.23.124.32 |
+action_result.data.\*.data.\*.ip | string | `ip` `ipv6` | 123.23.124.32 |
 action_result.data.\*.data.\*.tags.data.\*.id | numeric | | 153676 |
 action_result.data.\*.data.\*.tags.data.\*.name | string | | testing |
 action_result.data.\*.data.\*.tags.data.\*.lastUsed | string | | 2025-03-08T09:35:46Z |
@@ -272,7 +268,7 @@ action_result.data.\*.data.\*.active | boolean | | True False |
 action_result.data.\*.data.\*.rating | numeric | | 3 |
 action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
 action_result.data.\*.data.\*.summary | string | `ip` `ipv6` | 123.23.124.32 |
-action_result.data.\*.data.\*.webLink | string | | https://testxyz.threatconnect.com/#/details/indicators/11111797252348111 |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/11111797252348111 |
 action_result.data.\*.data.\*.dateAdded | string | | 2025-03-08T09:35:46Z |
 action_result.data.\*.data.\*.ownerName | string | | TestUser |
 action_result.data.\*.data.\*.attributes.data.\*.id | numeric | | 11111797252348111 |
@@ -302,8 +298,6 @@ action_result.data.\*.data.\*.securityLabels.data.\*.dateAdded | string | | 2016
 action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | This security label is used for information that requires support to be effectively acted upon, yet carries risks to privacy, reputation, or operations if shared outside of the organizations involved. Information with this label can be shared with members of an organization and its clients. |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
-summary.total_objects | numeric | | |
-summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt file'
 
@@ -339,7 +333,7 @@ action_result.data.\*.data.\*.active | boolean | | True False |
 action_result.data.\*.data.\*.rating | numeric | | 5 |
 action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
 action_result.data.\*.data.\*.summary | string | `hash` `md5` `sha1` `sha256` | AAAAF2DB1295FA419B190BD7478DAAAA |
-action_result.data.\*.data.\*.webLink | string | | https://testxyz.threatconnect.com/#/details/indicators/1111799822086111 |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/1111799822086111 |
 action_result.data.\*.data.\*.dateAdded | string | | 2025-03-05T13:28:46Z |
 action_result.data.\*.data.\*.ownerName | string | | TestUser |
 action_result.data.\*.data.\*.confidence | numeric | | 50 |
@@ -350,8 +344,6 @@ action_result.data.\*.data.\*.lastModified | string | | 2025-03-05T13:28:46Z |
 action_result.data.\*.status | string | | Success |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
-summary.total_objects | numeric | | |
-summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt email'
 
@@ -383,13 +375,15 @@ action_result.parameter.security_label | boolean | | |
 action_result.data.\*.data.\*.id | numeric | | 1111899916230111 |
 action_result.data.\*.data.\*.tags.data.\*.id | numeric | | 153676 |
 action_result.data.\*.data.\*.tags.data.\*.name | string | | testing |
+action_result.data.\*.data.\*.rating | numeric | | 4 |
+action_result.data.\*.data.\*.confidence | numeric | | 24 |
 action_result.data.\*.data.\*.tags.data.\*.lastUsed | string | | 2025-03-08T10:06:59Z |
 action_result.data.\*.data.\*.type | string | | EmailAddress |
 action_result.data.\*.data.\*.active | boolean | | True False |
-action_result.data.\*.data.\*.address | string | | abcxyz@test.com |
+action_result.data.\*.data.\*.address | string | `email` | abcxyz@test.com |
 action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
 action_result.data.\*.data.\*.summary | string | `email` | abcxyz@test.com |
-action_result.data.\*.data.\*.webLink | string | | https://testxyz.threatconnect.com/#/details/indicators/1111899916230111 |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/1111899916230111 |
 action_result.data.\*.data.\*.dateAdded | string | | 2025-03-08T10:06:59Z |
 action_result.data.\*.data.\*.ownerName | string | | TestUser |
 action_result.data.\*.data.\*.attributes.data.\*.id | numeric | | 1111900049338111 |
@@ -419,8 +413,6 @@ action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | Th
 action_result.data.\*.status | string | | Success |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
-summary.total_objects | numeric | | |
-summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt domain'
 
@@ -456,8 +448,8 @@ action_result.data.\*.data.\*.active | boolean | | True False |
 action_result.data.\*.data.\*.rating | numeric | | 2 |
 action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
 action_result.data.\*.data.\*.summary | string | `url` `domain` | vclub.credit |
-action_result.data.\*.data.\*.webLink | string | | https://testxyz.threatconnect.com/#/details/indicators/1111900049338111 |
-action_result.data.\*.data.\*.hostName | string | | vclub.credit |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/1111900049338111 |
+action_result.data.\*.data.\*.hostName | string | `domain` | vclub.credit |
 action_result.data.\*.data.\*.dateAdded | string | | 2025-03-08T06:44:39Z |
 action_result.data.\*.data.\*.dnsActive | boolean | | True False |
 action_result.data.\*.data.\*.ownerName | string | | TestUser |
@@ -492,8 +484,6 @@ action_result.data.\*.data.\*.securityLabels.data.\*.dateAdded | string | | 2016
 action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | This security label is used for information that requires support to be effectively acted upon, yet carries risks to privacy, reputation, or operations if shared outside of the organizations involved. Information with this label can be shared with members of an organization and its clients. |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
-summary.total_objects | numeric | | |
-summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt url'
 
@@ -523,12 +513,12 @@ action_result.parameter.attribute | boolean | | |
 action_result.parameter.tag | boolean | | |
 action_result.parameter.security_label | boolean | | |
 action_result.data.\*.data.\*.id | numeric | | 2251799822191373 |
-action_result.data.\*.data.\*.text | string | | http://www.test.com/list/oz/ |
+action_result.data.\*.data.\*.text | string | `url` | http://www.test.com/list/oz/ |
 action_result.data.\*.data.\*.type | string | | URL |
 action_result.data.\*.data.\*.active | boolean | | True False |
 action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
 action_result.data.\*.data.\*.summary | string | | http://www.test.com/list/oz/ |
-action_result.data.\*.data.\*.webLink | string | | https://testxyz.threatconnect.com/#/details/indicators/2251799822191373 |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/2251799822191373 |
 action_result.data.\*.data.\*.dateAdded | string | | 2025-03-07T12:16:05Z |
 action_result.data.\*.data.\*.ownerName | string | | TestUser |
 action_result.data.\*.data.\*.legacyLink | string | | https://testxyz.threatconnect.com/auth/indicators/details/url.xhtml?orgid=2251799822191373&owner=TestUser |
@@ -540,8 +530,6 @@ action_result.data.\*.data.\*.rating | numeric | | 1 |
 action_result.data.\*.data.\*.confidence | numeric | | 60 |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
-summary.total_objects | numeric | | |
-summary.total_objects_successful | numeric | | |
 
 ______________________________________________________________________
 
