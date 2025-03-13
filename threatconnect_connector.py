@@ -183,13 +183,8 @@ class ThreatconnectConnector(BaseConnector):
 
         payload = {
             "fields": [],
-            "tql": f"typeName in ('{indicator_type}') and summary ",
+            "tql": f"typeName IN ('{indicator_type}') AND summary CONTAINS '{indicator_to_hunt}'",
         }
-
-        if indicator_type == THREATCONNECT_INDICATOR_FIELD_FILE:
-            payload["tql"] += f"like '%{indicator_to_hunt}%'"
-        else:
-            payload["tql"] += f"in ('{indicator_to_hunt}')"
 
         # Mapping parameter keys to corresponding fields
         indicator_field_mappings = {
