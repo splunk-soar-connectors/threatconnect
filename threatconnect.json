@@ -19,7 +19,7 @@
     ],
     "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
-    "license": "Copyright (c) 2016-2023 Splunk Inc.",
+    "license": "Copyright (c) 2016-2025 Splunk Inc.",
     "configuration": {
         "access_id": {
             "data_type": "string",
