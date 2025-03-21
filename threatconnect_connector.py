@@ -43,7 +43,6 @@ class RetVal(tuple):
 
 
 class ThreatconnectConnector(BaseConnector):
-
     # List of all of the actions that are available for this app
     ACTION_ID_HUNT_FILE = "hunt_file"
     ACTION_ID_HUNT_HOST = "hunt_host"
@@ -56,8 +55,7 @@ class ThreatconnectConnector(BaseConnector):
     TEST_ASSET_CONNECTIVITY = "test_asset_connectivity"
 
     def __init__(self):
-
-        super(ThreatconnectConnector, self).__init__()
+        super().__init__()
         self._state = {}
 
     def is_positive_int(self, value):
@@ -75,10 +73,9 @@ class ThreatconnectConnector(BaseConnector):
             return False
 
     def _test_connectivity(self, params):
-
         action_result = self.add_action_result(ActionResult(params))
 
-        self.save_progress("Using base url: {0}".format(self._get_url()))
+        self.save_progress(f"Using base url: {self._get_url()}")
 
         self.save_progress("Requesting a list of all owners visible to this user...")
 
@@ -88,11 +85,7 @@ class ThreatconnectConnector(BaseConnector):
             return action_result.get_status()
 
         if not resp_json["status"]:
-            return action_result.set_status(
-                phantom.APP_ERROR,
-                "There was an error in parsing the response",
-                resp_json,
-            )
+            return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
         elif resp_json["status"] != "Success":
             return action_result.set_status(phantom.APP_ERROR, "Test Connectivity Failed", resp_json)
 
@@ -101,10 +94,9 @@ class ThreatconnectConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, "Test Connectivity Passed")
 
     def _list_owners(self, params):
-
         action_result = self.add_action_result(ActionResult(params))
 
-        self.save_progress("Using base url: {0}".format(self._get_url()))
+        self.save_progress(f"Using base url: {self._get_url()}")
 
         self.save_progress("Requesting a list of all owners visible to this user...")
 
@@ -114,11 +106,7 @@ class ThreatconnectConnector(BaseConnector):
             return action_result.get_status()
 
         if not resp_json.get("status"):
-            return action_result.set_status(
-                phantom.APP_ERROR,
-                "There was an error in parsing the response",
-                resp_json,
-            )
+            return action_result.set_status(phantom.APP_ERROR, "There was an error in parsing the response", resp_json)
         elif resp_json.get("status") != "Success":
             return action_result.set_status(phantom.APP_ERROR, "Unable to List Owners", resp_json)
 
@@ -207,7 +195,6 @@ class ThreatconnectConnector(BaseConnector):
         return phantom.APP_SUCCESS, payload
 
     def _hunt_indicator(self, params):
-
         action_result = self.add_action_result(ActionResult(params))
 
         ret_val, payload = self._create_payload_for_hunt_indicator(action_result, params)
@@ -315,7 +302,6 @@ class ThreatconnectConnector(BaseConnector):
         return phantom.APP_SUCCESS, body, param
 
     def _post_data(self, params):
-
         action_result = self.add_action_result(ActionResult(params))
 
         endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE
@@ -337,7 +323,6 @@ class ThreatconnectConnector(BaseConnector):
         return action_result.set_status(phantom.APP_SUCCESS, "Data successfully posted to ThreatConnect")
 
     def _on_poll(self, params):
-
         action_result = self.add_action_result(ActionResult(dict(params)))
 
         last_time = self._state.get(THREATCONNECT_JSON_LAST_DATE_TIME)
@@ -345,7 +330,6 @@ class ThreatconnectConnector(BaseConnector):
         config = self.get_config()
 
         if self.is_poll_now():
-
             num_of_days = int(config.get(THREATCONNECT_JSON_DEF_NUM_DAYS, THREATCONNECT_DAYS_TO_POLL))
 
             start_time = datetime.utcfromtimestamp(time.time() - (num_of_days * THREATCONNECT_SECONDS_IN_A_DAY)).strftime(DATETIME_FORMAT)
@@ -353,7 +337,6 @@ class ThreatconnectConnector(BaseConnector):
             self._container_limit = int(params[THREATCONNECT_CONFIG_POLL_NOW_CONTAINER_LIMIT])
 
         else:
-
             self._container_limit = int(
                 config.get(
                     THREATCONNECT_JSON_CONTAINER_LIMIT,
@@ -364,20 +347,18 @@ class ThreatconnectConnector(BaseConnector):
             num_of_days = int(config.get(THREATCONNECT_JSON_DEF_NUM_DAYS, THREATCONNECT_DAYS_TO_POLL))
 
             if self._state.get("first_run", True):
-
                 # Only goes here when its the first time polling with on_poll
                 self._state["first_run"] = False
 
                 start_time = self._first_poll(num_of_days)
 
             elif last_time:
-
                 # Last polled time is taken here
                 start_time = last_time
 
-        self.save_progress("Start time for polling: {0}".format(start_time))
+        self.save_progress(f"Start time for polling: {start_time}")
 
-        self.save_progress("Querying for Indicators created between {} and {}".format(datetime.utcnow().strftime(DATETIME_FORMAT), start_time))
+        self.save_progress(f"Querying for Indicators created between {datetime.utcnow().strftime(DATETIME_FORMAT)} and {start_time}")
 
         self.save_progress("Making REST call for ingestion")
 
@@ -429,7 +410,6 @@ class ThreatconnectConnector(BaseConnector):
                 continue
             # Successfully found the indicator to stop at.
             elif start_time_unix > indicator_date_added_unix:
-
                 ret_val, message = self._iterate_indicators(possible_indicators)
                 if phantom.is_fail(ret_val):
                     return RetVal(phantom.APP_ERROR, message)
@@ -457,7 +437,6 @@ class ThreatconnectConnector(BaseConnector):
         beginning_of_polling_date = indicator_list[-1]["dateAdded"]
 
         for indicator in reversed(indicator_list):
-
             # Required fields that are present in every Indicator
             required_fields = {
                 "summary": str(indicator["summary"]),
@@ -509,10 +488,8 @@ class ThreatconnectConnector(BaseConnector):
 
             # Break the loop when the container_limit set in the config is reached.
             if successful_container_count == container_limit:
-
                 # Only update the state file if its not poll now
                 if phantom.is_fail(self.is_poll_now()):
-
                     # Update the state in order to use the correct date for the next ingestion cycle.
                     date_to_use = self._state.get(THREATCONNECT_JSON_LAST_DATE_TIME)
 
@@ -545,7 +522,6 @@ class ThreatconnectConnector(BaseConnector):
         cef_field,
         cef_type,
     ):
-
         updated_artifact = artifact_base
         summary = required_fields["summary"]
 
@@ -716,14 +692,14 @@ class ThreatconnectConnector(BaseConnector):
         # Prepare the url in case there are params that need to be encoded
         encoded_url = Request(rtype, url, params=params, json=json).prepare().path_url
         # Prepare the signature to be signed by the HMAC
-        signature_raw = "{0}:{1}:{2}".format(encoded_url, rtype.upper(), timestamp_nonce)
+        signature_raw = f"{encoded_url}:{rtype.upper()}:{timestamp_nonce}"
         # Autograph time
         try:
             signature_hmac = hmac.new(str(secret_key), signature_raw, digestmod=hashlib.sha256).digest()
-            authorization = "TC {0}:{1}".format(api_id, base64.b64encode(signature_hmac))
+            authorization = f"TC {api_id}:{base64.b64encode(signature_hmac)}"
         except Exception:
             signature_hmac = hmac.new(secret_key.encode(), signature_raw.encode(), digestmod=hashlib.sha256).digest()
-            authorization = "TC {0}:{1}".format(api_id, base64.b64encode(signature_hmac).decode())
+            authorization = f"TC {api_id}:{base64.b64encode(signature_hmac).decode()}"
 
         header = {
             "Content-Type": "application/json",
@@ -734,7 +710,6 @@ class ThreatconnectConnector(BaseConnector):
         return header
 
     def _process_empty_reponse(self, response, action_result):
-
         if 200 <= response.status_code < 205:
             return RetVal(phantom.APP_SUCCESS, {})
 
@@ -744,7 +719,6 @@ class ThreatconnectConnector(BaseConnector):
         )
 
     def _process_html_response(self, response, action_result):
-
         # An html response, is bound to be an error
         status_code = response.status_code
 
@@ -757,14 +731,13 @@ class ThreatconnectConnector(BaseConnector):
         except Exception:
             error_text = "Cannot parse error details"
 
-        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, error_text)
+        message = f"Status Code: {status_code}. Data from server:\n{error_text}\n"
 
         message = message.replace("{", "{{").replace("}", "}}")
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
     def _process_json_response(self, r, action_result):
-
         # Try a json parse
         try:
             resp_json = r.json()
@@ -782,13 +755,12 @@ class ThreatconnectConnector(BaseConnector):
         return RetVal(
             action_result.set_status(
                 phantom.APP_ERROR,
-                "Error from server, Status Code: {0} data returned: {1}".format(r.status_code, message),
+                f"Error from server, Status Code: {r.status_code} data returned: {message}",
             ),
             resp_json,
         )
 
     def _process_response(self, r, action_result):
-
         # store the r_text in debug data, it will get dumped in the logs if an error occurs
         if hasattr(action_result, "add_debug_data"):
             action_result.add_debug_data({"r_text": r.text})
@@ -807,7 +779,7 @@ class ThreatconnectConnector(BaseConnector):
             return self._process_empty_reponse(r, action_result)
 
         # everything else is actually an error at this point
-        message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
+        message = "Can't process response from server. Status Code: {} Data from server: {}".format(
             r.status_code, r.text.replace("{", "{{").replace("}", "}}")
         )
 
@@ -824,7 +796,7 @@ class ThreatconnectConnector(BaseConnector):
             headers = self._create_header(endpoint, params=params, rtype=rtype, json=body)
         except Exception as e:
             return RetVal(
-                action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))),
+                action_result.set_status(phantom.APP_ERROR, f"Handled exception: {e!s}"),
                 None,
             )
         try:
@@ -832,13 +804,13 @@ class ThreatconnectConnector(BaseConnector):
         except AttributeError:
             # Set the action_result status to error, the handler function will most probably return as is
             return RetVal(
-                action_result.set_status(phantom.APP_ERROR, "Unsupported method: {0}".format(rtype)),
+                action_result.set_status(phantom.APP_ERROR, f"Unsupported method: {rtype}"),
                 None,
             )
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
             return RetVal(
-                action_result.set_status(phantom.APP_ERROR, "Handled exception: {0}".format(str(e))),
+                action_result.set_status(phantom.APP_ERROR, f"Handled exception: {e!s}"),
                 None,
             )
 
@@ -853,7 +825,7 @@ class ThreatconnectConnector(BaseConnector):
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
             return RetVal(
-                action_result.set_status(phantom.APP_ERROR, "Error connecting: {0}".format(str(e))),
+                action_result.set_status(phantom.APP_ERROR, f"Error connecting: {e!s}"),
                 None,
             )
 
@@ -866,7 +838,6 @@ class ThreatconnectConnector(BaseConnector):
         return self._process_response(response, action_result)
 
     def _get_url(self):
-
         config = self.get_config()
         if "sandbox.threatconnect.com" in config[THREATCONNECT_BASE_URL]:
             return THREATCONNECT_SANDBOX_API_URL.format(base=config[THREATCONNECT_BASE_URL]) + "/"
@@ -931,7 +902,6 @@ class ThreatconnectConnector(BaseConnector):
 
 
 if __name__ == "__main__":
-
     import argparse
     import sys
 
@@ -969,7 +939,7 @@ if __name__ == "__main__":
                 "csrfmiddlewaretoken": csrftoken,
             }
             headers = {
-                "Cookie": "csrftoken={0}".format(csrftoken),
+                "Cookie": f"csrftoken={csrftoken}",
                 "Referer": login_url,
             }
 
@@ -984,7 +954,7 @@ if __name__ == "__main__":
             session_id = r2.cookies["sessionid"]
 
         except Exception as e:
-            print("Unable to get session id from the platform. Error: {0}".format(str(e)))
+            print(f"Unable to get session id from the platform. Error: {e!s}")
             sys.exit(1)
 
     if len(sys.argv) < 2:

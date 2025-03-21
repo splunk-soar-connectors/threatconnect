@@ -136,6 +136,8 @@ action_result.data.\*.status | string | | Success |
 action_result.summary.num_owners | numeric | | 16 |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | List owners succeeded |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'post data'
 
@@ -229,6 +231,8 @@ action_result.summary.attribute_added | boolean | | False True |
 action_result.summary.indicator_created/updated | boolean | | False True |
 action_result.summary.total_objects | numeric | | 1 |
 action_result.message | string | | Data successfully posted to ThreatConnect |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt ip'
 
@@ -298,6 +302,8 @@ action_result.data.\*.data.\*.securityLabels.data.\*.dateAdded | string | | 2016
 action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | This security label is used for information that requires support to be effectively acted upon, yet carries risks to privacy, reputation, or operations if shared outside of the organizations involved. Information with this label can be shared with members of an organization and its clients. |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt file'
 
@@ -344,6 +350,8 @@ action_result.data.\*.data.\*.lastModified | string | | 2025-03-05T13:28:46Z |
 action_result.data.\*.status | string | | Success |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt email'
 
@@ -413,6 +421,8 @@ action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | Th
 action_result.data.\*.status | string | | Success |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt domain'
 
@@ -484,6 +494,8 @@ action_result.data.\*.data.\*.securityLabels.data.\*.dateAdded | string | | 2016
 action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | This security label is used for information that requires support to be effectively acted upon, yet carries risks to privacy, reputation, or operations if shared outside of the organizations involved. Information with this label can be shared with members of an organization and its clients. |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt url'
 
@@ -530,6 +542,8 @@ action_result.data.\*.data.\*.rating | numeric | | 1 |
 action_result.data.\*.data.\*.confidence | numeric | | 60 |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ______________________________________________________________________
 
