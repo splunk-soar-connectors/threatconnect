@@ -1,3 +1,2 @@
 **Unreleased**
-
-* chore: batch changes
+* Replaced API support from V2 to V3
