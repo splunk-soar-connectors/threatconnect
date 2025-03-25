@@ -138,14 +138,7 @@ class ThreatconnectConnector(BaseConnector):
         self._hunt_indicator(param)
 
     def _create_payload_for_hunt_indicator(self, action_result, params):
-        # Mapping of parameter keys to their corresponding indicator types
-        indicator_mapping = {
-            THREATCONNECT_JSON_FILE: THREATCONNECT_INDICATOR_FIELD_FILE,
-            THREATCONNECT_JSON_URL: THREATCONNECT_INDICATOR_FIELD_URL,
-            THREATCONNECT_JSON_EMAIL: THREATCONNECT_INDICATOR_FIELD_EMAIL,
-        }
-
-        for key, indicator_type in indicator_mapping.items():
+        for key, indicator_type in INDICATOR_MAPPING_JSON_TO_FIELD.items():
             if indicator_to_hunt := params.get(key):
                 break
         else:
@@ -174,15 +167,8 @@ class ThreatconnectConnector(BaseConnector):
             "tql": f"typeName IN ('{indicator_type}') AND summary CONTAINS '{indicator_to_hunt}'",
         }
 
-        # Mapping parameter keys to corresponding fields
-        indicator_field_mappings = {
-            THREATCONNECT_JSON_SECURITY_LABEL: THREATCONNECT_SECURITY_LABEL,
-            THREATCONNECT_JSON_TAG: THREATCONNECT_TAGS,
-            THREATCONNECT_JSON_ATTRIBUTE: THREATCONNECT_ATTRIBUTE,
-        }
-
         # Append fields if parameters are present
-        payload["fields"].extend(field for key, field in indicator_field_mappings.items() if params.get(key))
+        payload["fields"].extend(field for key, field in INDICATOR_ATTRIBUTE_MAPPING_JSON_TO_FIELD.items() if params.get(key))
 
         if owners := params.get(THREATCONNECT_JSON_OWNER):
             if isinstance(owners, list):
@@ -267,37 +253,27 @@ class ThreatconnectConnector(BaseConnector):
         elif indicator_type == THREATCONNECT_INDICATOR_FIELD_FILE:
             body["size"] = params.get(THREATCONNECT_JSON_SIZE)
 
-        # Add optional attributes, tags, and security labels
-        params_fields = {
-            THREATCONNECT_TAGS: THREATCONNECT_JSON_TAG,
-            THREATCONNECT_SECURITY_LABEL: THREATCONNECT_JSON_SECURITY_LABEL,
-            THREATCONNECT_ATTRIBUTE: (
-                THREATCONNECT_JSON_ATTRIBUTE_NAME,
-                THREATCONNECT_JSON_ATTRIBUTE_VALUE,
-            ),
-        }
-
         param = {"fields": []}
 
-        for key, value in params_fields.items():
-            if isinstance(value, tuple):  # Handle attributes separately
-                attribute_name, attribute_value = params.get(value[0]), params.get(value[1])
-                if attribute_name and attribute_value:
-                    param["fields"].append(key)
-                    body[key] = {
-                        "data": [
-                            {
-                                "type": attribute_name,
-                                "value": attribute_value,
-                                "default": True,
-                            }
-                        ]
+        if (attribute_name := params.get(THREATCONNECT_JSON_ATTRIBUTE_NAME)) and (
+            attribute_value := params.get(THREATCONNECT_JSON_ATTRIBUTE_VALUE)
+        ):
+            body[THREATCONNECT_ATTRIBUTE] = {
+                "data": [
+                    {
+                        "type": attribute_name,
+                        "value": attribute_value,
+                        "default": True,
                     }
-            else:
-                field_value = params.get(value)
-                if field_value:
-                    param["fields"].append(key)
-                    body[key] = {"data": [{"name": field_value}]}
+                ]
+            }
+            param["fields"].append(THREATCONNECT_ATTRIBUTE)
+
+        for key, value in INDICATOR_ATTRIBUTE_MAPPING_JSON_TO_FIELD.items():
+            field_value = params.get(key)
+            if field_value:
+                body[value] = {"data": [{"name": field_value}]}
+            param["fields"].append(value)
 
         return phantom.APP_SUCCESS, body, param
 

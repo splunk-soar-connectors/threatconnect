@@ -16,4 +16,4 @@
   - `https://sandbox.threatconnect.com`
   - `https://companyabc.threatconnect.com/api`
 
-- For more details, please refer to the [ThreatConnect API documentation](https://docs.threatconnect.com/en/latest/rest_api/quick_start.html?utm_source=chatgpt.com#using-the-api).
+- For more details, please refer to the [ThreatConnect API documentation](https://docs.threatconnect.com/en/latest/rest_api/quick_start.html#using-the-api).
