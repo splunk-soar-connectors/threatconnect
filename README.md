@@ -1,12 +1,32 @@
 # ThreatConnect
 
 Publisher: Splunk \
-Connector Version: 2.2.7 \
+Connector Version: 3.0.0 \
 Product Vendor: ThreatConnect \
 Product Name: ThreatConnect \
-Minimum Product Version: 5.1.0
+Minimum Product Version: 6.3.0
 
 This app integrates with the ThreatConnect platform to provide various hunting actions in addition to threat ingestion
+
+## Playbook Backward Compatibility
+
+- In version 3.0.0 of the connector, the API endpoints were updated from V2 to V3. Additionally, below three new parameters were added to the actions **'hunt ip', 'hunt file', 'hunt email', 'hunt domain',** and **'hunt url'**:
+
+  - **attribute** - Retrieves Indicator attributes (default: **false**).
+  - **tag** - Retrieves Indicator tags (default: **false**).
+  - **security label** - Retrieves Indicator security labels (default: **false**).
+
+- As a result, the output data paths have been updated. To ensure your existing playbooks function correctly, please **update, reinsert, modify, or delete** the affected action blocks accordingly.
+
+### Asset Configuration Update
+
+- The **base_url** parameter in the asset configuration should be set according to your ThreatConnect instance. Examples:
+
+  - `https://api.threatconnect.com`
+  - `https://sandbox.threatconnect.com`
+  - `https://companyabc.threatconnect.com/api`
+
+- For more details, please refer to the [ThreatConnect API documentation](https://docs.threatconnect.com/en/latest/rest_api/quick_start.html#using-the-api).
 
 ### Configuration variables
 
@@ -15,7 +35,7 @@ This table lists the configuration variables required to operate ThreatConnect. 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
 **access_id** | required | string | Access ID |
-**base_url** | required | string | Base URL for instance (e.g. https://api.threatconnect.com) |
+**base_url** | required | string | Base URL for instance (e.g. https://api.threatconnect.com or https://companyabc.threatconnect.com/api) |
 **secret_key** | required | password | Secret Key |
 **max_containers** | optional | numeric | Max containers per poll |
 **interval_days** | optional | numeric | Last 'N' Days to get data during 'Poll Now' and scheduled polling |
@@ -83,16 +103,41 @@ No parameters are required for this action
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string | | success failed |
-action_result.data.\*.data.owner.\*.id | numeric | | 423 |
-action_result.data.\*.data.owner.\*.name | string | | Splunk |
-action_result.data.\*.data.owner.\*.type | string | | Organization |
-action_result.data.\*.data.resultCount | numeric | | 16 |
+action_result.data.\*.data.\*.id | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.name | string | | TestUser |
+action_result.data.\*.data.\*.type | string | | Organization |
+action_result.data.\*.data.\*.permTag | string | | FULL |
+action_result.data.\*.data.\*.permApps | string | | BUILD |
+action_result.data.\*.data.\*.permPost | string | | FULL |
+action_result.data.\*.data.\*.permTask | string | | FULL |
+action_result.data.\*.data.\*.ownerRole | string | | Organization Administrator |
+action_result.data.\*.data.\*.permGroup | string | | FULL |
+action_result.data.\*.data.\*.permTrack | string | | FULL |
+action_result.data.\*.data.\*.permUsers | string | | FULL |
+action_result.data.\*.data.\*.permInvite | string | | FULL |
+action_result.data.\*.data.\*.permVictim | string | | FULL |
+action_result.data.\*.data.\*.permCaseTag | string | | FULL |
+action_result.data.\*.data.\*.permComment | string | | FULL |
+action_result.data.\*.data.\*.permMembers | string | | READ |
+action_result.data.\*.data.\*.permPublish | string | | FULL |
+action_result.data.\*.data.\*.permArtifact | string | | FULL |
+action_result.data.\*.data.\*.permCopyData | string | | FULL |
+action_result.data.\*.data.\*.permSettings | string | | FULL |
+action_result.data.\*.data.\*.permTimeline | string | | FULL |
+action_result.data.\*.data.\*.permAttribute | string | | FULL |
+action_result.data.\*.data.\*.permIndicator | string | | FULL |
+action_result.data.\*.data.\*.permPlaybooks | string | | FULL |
+action_result.data.\*.data.\*.permAttributeType | string | | FULL |
+action_result.data.\*.data.\*.permSecurityLabel | string | | FULL |
+action_result.data.\*.data.\*.permPlaybooksExecute | string | | FULL |
+action_result.data.\*.data.\*.permWorkflowTemplate | string | | FULL |
+action_result.data.\*.count | numeric | | 1 |
 action_result.data.\*.status | string | | Success |
 action_result.summary.num_owners | numeric | | 16 |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | List owners succeeded |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'post data'
 
@@ -125,82 +170,69 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.status | string | | success failed |
 action_result.parameter.attribute_name | string | | |
 action_result.parameter.attribute_value | string | | |
-action_result.parameter.confidence | string | | |
+action_result.parameter.confidence | numeric | | 50 |
 action_result.parameter.dns_active | boolean | | |
 action_result.parameter.primary_field | string | `ip` `ipv6` `email` `hash` `md5` `sha1` `sha256` `domain` `url` | 80f7be8806019283777fdeed1ab09c4c |
-action_result.parameter.rating | string | | |
+action_result.parameter.rating | numeric | | 2 |
 action_result.parameter.size | string | | |
 action_result.parameter.tag | string | | |
 action_result.parameter.security_label | string | | |
 action_result.parameter.whois_active | boolean | | |
-action_result.data.\*.data.address.confidence | numeric | | |
-action_result.data.\*.data.address.dateAdded | string | | |
-action_result.data.\*.data.address.description | string | | |
-action_result.data.\*.data.address.id | numeric | | |
-action_result.data.\*.data.address.ip | string | `ip` | |
-action_result.data.\*.data.address.lastModified | string | | |
-action_result.data.\*.data.address.owner.id | numeric | | |
-action_result.data.\*.data.address.owner.name | string | | |
-action_result.data.\*.data.address.owner.type | string | | |
-action_result.data.\*.data.address.rating | numeric | | |
-action_result.data.\*.data.address.webLink | string | `url` | |
-action_result.data.\*.data.emailAddress.address | string | `email` | |
-action_result.data.\*.data.emailAddress.confidence | numeric | | |
-action_result.data.\*.data.emailAddress.dateAdded | string | | |
-action_result.data.\*.data.emailAddress.description | string | | |
-action_result.data.\*.data.emailAddress.id | numeric | | |
-action_result.data.\*.data.emailAddress.lastModified | string | | |
-action_result.data.\*.data.emailAddress.owner.id | numeric | | |
-action_result.data.\*.data.emailAddress.owner.name | string | | |
-action_result.data.\*.data.emailAddress.owner.type | string | | |
-action_result.data.\*.data.emailAddress.rating | numeric | | |
-action_result.data.\*.data.emailAddress.webLink | string | `url` | |
-action_result.data.\*.data.file.confidence | numeric | | |
-action_result.data.\*.data.file.dateAdded | string | | 2020-03-20T21:29:05Z |
-action_result.data.\*.data.file.description | string | | |
-action_result.data.\*.data.file.id | numeric | | 111349508 |
-action_result.data.\*.data.file.lastModified | string | | 2020-03-20T21:29:05Z |
-action_result.data.\*.data.file.md5 | string | `hash` `md5` | 80F7BE8806019283777FDEED1AB09C4C |
-action_result.data.\*.data.file.owner.id | numeric | | 423 |
-action_result.data.\*.data.file.owner.name | string | | Splunk |
-action_result.data.\*.data.file.owner.type | string | | Organization |
-action_result.data.\*.data.file.rating | numeric | | |
-action_result.data.\*.data.file.sha1 | string | `hash` `sha1` | |
-action_result.data.\*.data.file.sha256 | string | `hash` `sha256` | |
-action_result.data.\*.data.file.size | numeric | | |
-action_result.data.\*.data.file.webLink | string | `url` | https://sandbox.threatconnect.com/auth/indicators/details/file.xhtml?file=80F7BE8806019283777FDEED1AB09C4C&owner=Splunk |
-action_result.data.\*.data.host.confidence | numeric | | |
-action_result.data.\*.data.host.dateAdded | string | | |
-action_result.data.\*.data.host.description | string | | |
-action_result.data.\*.data.host.dns_active | string | | |
-action_result.data.\*.data.host.hostName | string | `domain` | |
-action_result.data.\*.data.host.id | numeric | | |
-action_result.data.\*.data.host.lastModified | string | | |
-action_result.data.\*.data.host.owner.id | numeric | | |
-action_result.data.\*.data.host.owner.name | string | | |
-action_result.data.\*.data.host.owner.type | string | | |
-action_result.data.\*.data.host.rating | numeric | | |
-action_result.data.\*.data.host.webLink | string | | |
-action_result.data.\*.data.host.whois_active | string | | |
-action_result.data.\*.data.url.confidence | numeric | | |
-action_result.data.\*.data.url.dateAdded | string | | |
-action_result.data.\*.data.url.description | string | | |
-action_result.data.\*.data.url.id | numeric | | |
-action_result.data.\*.data.url.lastModified | string | | |
-action_result.data.\*.data.url.owner.id | numeric | | |
-action_result.data.\*.data.url.owner.name | string | | |
-action_result.data.\*.data.url.owner.type | string | | |
-action_result.data.\*.data.url.rating | numeric | | |
-action_result.data.\*.data.url.text | string | | |
-action_result.data.\*.data.url.webLink | string | `url` | |
+action_result.data.\*.data.id | numeric | | 1125800916204668 |
+action_result.data.\*.data.md5 | string | `md5` | AAA0985A485969F70C0B414EF328DAAA |
+action_result.data.\*.data.type | string | | File |
+action_result.data.\*.data.active | boolean | | True False |
+action_result.data.\*.data.ownerId | numeric | | 11111797252348111 |
+action_result.data.\*.data.summary | string | `ip` `ipv6` `email` `hash` `md5` `sha1` `sha256` `domain` `url` | AAA0985A485969F70C0B414EF328DAAA |
+action_result.data.\*.data.webLink | string | | https://testxyz.threatconnect.com/#/details/indicators/1125800916204668 |
+action_result.data.\*.data.dateAdded | string | | 2025-03-07T10:32:16Z |
+action_result.data.\*.data.ownerName | string | | TestUser |
+action_result.data.\*.data.legacyLink | string | | https://testxyz.threatconnect.com/auth/indicators/details/file.xhtml?file=AAA0985A485969F70C0B414EF328DAAA&owner=TestUser |
+action_result.data.\*.data.privateFlag | boolean | | True False |
+action_result.data.\*.data.activeLocked | boolean | | True False |
+action_result.data.\*.data.lastModified | string | | 2025-03-07T10:32:16Z |
 action_result.data.\*.status | string | | Success |
+action_result.data.\*.message | string | | Created |
+action_result.data.\*.data.text | string | | http://www.test.ru |
+action_result.data.\*.data.ip | string | `ip` `ipv6` | 17.5.7.8 |
+action_result.data.\*.data.sha256 | string | `sha256` | AAAA30BA2F79F45ED475BA35205D6332ABF201830A4979355C53C66F3220AAAA |
+action_result.data.\*.data.rating | numeric | | 2 |
+action_result.data.\*.data.confidence | numeric | | 50 |
+action_result.data.\*.data.hostName | string | `domain` | www.test.com |
+action_result.data.\*.data.dnsActive | boolean | | True False |
+action_result.data.\*.data.whoisActive | boolean | | True False |
+action_result.data.\*.data.attributes.data.\*.id | numeric | | 2251700947844857 |
+action_result.data.\*.data.attributes.data.\*.type | string | | Description |
+action_result.data.\*.data.attributes.data.\*.value | string | | valid description |
+action_result.data.\*.data.attributes.data.\*.pinned | boolean | | True False |
+action_result.data.\*.data.attributes.data.\*.default | boolean | | True False |
+action_result.data.\*.data.attributes.data.\*.createdBy.id | numeric | | 2251700814002001 |
+action_result.data.\*.data.attributes.data.\*.createdBy.owner | string | | TestUser |
+action_result.data.\*.data.attributes.data.\*.createdBy.lastName | string | | LastName |
+action_result.data.\*.data.attributes.data.\*.createdBy.userName | string | | 11111797252345448111 |
+action_result.data.\*.data.attributes.data.\*.createdBy.firstName | string | | FirstName |
+action_result.data.\*.data.attributes.data.\*.createdBy.pseudonym | string | | APIUserYSRPA |
+action_result.data.\*.data.attributes.data.\*.dateAdded | string | | 2025-03-07T13:26:22Z |
+action_result.data.\*.data.attributes.data.\*.lastModified | string | | 2025-03-07T13:26:22Z |
+action_result.data.\*.data.description | string | | valid description |
+action_result.data.\*.data.address | string | | abcde@gmail.com |
+action_result.data.\*.data.tags.data.\*.id | numeric | | 153484 |
+action_result.data.\*.data.tags.data.\*.name | string | | 漢©ᇗḈ✔❤╬⎋ᾧ҈₯⅏⌛ï دગુж!@#$%^&\* |
+action_result.data.\*.data.tags.data.\*.lastUsed | string | | 2025-03-07T13:26:28Z |
+action_result.data.\*.data.securityLabels.data.\*.id | numeric | | 3 |
+action_result.data.\*.data.securityLabels.data.\*.name | string | | TLP:AMBER |
+action_result.data.\*.data.securityLabels.data.\*.color | string | | FFC000 |
+action_result.data.\*.data.securityLabels.data.\*.owner | string | | System |
+action_result.data.\*.data.securityLabels.data.\*.dateAdded | string | | 2016-08-31T00:00:00Z |
+action_result.data.\*.data.securityLabels.data.\*.description | string | | This security label is used for information that requires support to be effectively acted upon, yet carries risks to privacy, reputation, or operations if shared outside of the organizations involved. Information with this label can be shared with members of an organization and its clients. |
+action_result.data.\*.data.size | numeric | | 10 |
 action_result.summary | string | | |
 action_result.summary.attribute_added | boolean | | False True |
 action_result.summary.indicator_created/updated | boolean | | False True |
 action_result.summary.total_objects | numeric | | 1 |
 action_result.message | string | | Data successfully posted to ThreatConnect |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
+summary.total_objects | numeric | | |
+summary.total_objects_successful | numeric | | |
 
 ## action: 'hunt ip'
 
@@ -215,6 +247,9 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **ip** | required | IP to hunt | string | `ip` `ipv6` |
 **owner** | optional | Indicator Owner within ThreatConnect | string | |
+**attribute** | optional | Retrieves Indicator attributes | boolean | |
+**tag** | optional | Retrieves Indicator tags | boolean | |
+**security_label** | optional | Retrieves Indicator security labels | boolean | |
 
 #### Action Output
 
@@ -223,18 +258,48 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.status | string | | success failed |
 action_result.parameter.ip | string | `ip` `ipv6` | |
 action_result.parameter.owner | string | | |
-action_result.data.\*.data.address.\*.confidence | numeric | | |
-action_result.data.\*.data.address.\*.dateAdded | string | | |
-action_result.data.\*.data.address.\*.description | string | | |
-action_result.data.\*.data.address.\*.id | numeric | | |
-action_result.data.\*.data.address.\*.ip | string | `ip` `ipv6` | |
-action_result.data.\*.data.address.\*.ip | string | `ip` `ipv6` | |
-action_result.data.\*.data.address.\*.lastModified | string | | |
-action_result.data.\*.data.address.\*.ownerName | string | | |
-action_result.data.\*.data.address.\*.rating | numeric | | |
-action_result.data.\*.data.address.\*.webLink | string | `url` | |
-action_result.data.\*.data.resultCount | numeric | | |
-action_result.data.\*.status | string | | |
+action_result.parameter.attribute | boolean | | |
+action_result.parameter.tag | boolean | | |
+action_result.parameter.security_label | boolean | | |
+action_result.data.\*.status | string | | Success |
+action_result.data.\*.data.\*.id | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.ip | string | `ip` `ipv6` | 123.23.124.32 |
+action_result.data.\*.data.\*.tags.data.\*.id | numeric | | 153676 |
+action_result.data.\*.data.\*.tags.data.\*.name | string | | testing |
+action_result.data.\*.data.\*.tags.data.\*.lastUsed | string | | 2025-03-08T09:35:46Z |
+action_result.data.\*.data.\*.type | string | | Address |
+action_result.data.\*.data.\*.active | boolean | | True False |
+action_result.data.\*.data.\*.rating | numeric | | 3 |
+action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.summary | string | `ip` `ipv6` | 123.23.124.32 |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/11111797252348111 |
+action_result.data.\*.data.\*.dateAdded | string | | 2025-03-08T09:35:46Z |
+action_result.data.\*.data.\*.ownerName | string | | TestUser |
+action_result.data.\*.data.\*.attributes.data.\*.id | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.attributes.data.\*.type | string | | Description |
+action_result.data.\*.data.\*.attributes.data.\*.value | string | | This is testing data |
+action_result.data.\*.data.\*.attributes.data.\*.pinned | boolean | | True False |
+action_result.data.\*.data.\*.attributes.data.\*.default | boolean | | True False |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.id | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.owner | string | | TestUser |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.lastName | string | | lab |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.userName | string | | 11111797252345448111 |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.firstName | string | | test |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.pseudonym | string | | APIUserYSRPA |
+action_result.data.\*.data.\*.attributes.data.\*.dateAdded | string | | 2025-03-08T09:35:46Z |
+action_result.data.\*.data.\*.attributes.data.\*.lastModified | string | | 2025-03-08T09:35:46Z |
+action_result.data.\*.data.\*.confidence | numeric | | 23 |
+action_result.data.\*.data.\*.legacyLink | string | | https://testxyz.threatconnect.com/auth/indicators/details/address.xhtml?address=123.23.124.32&owner=TestUser |
+action_result.data.\*.data.\*.description | string | | This is testing data |
+action_result.data.\*.data.\*.privateFlag | boolean | | True False |
+action_result.data.\*.data.\*.activeLocked | boolean | | True False |
+action_result.data.\*.data.\*.lastModified | string | | 2025-03-08T09:35:46Z |
+action_result.data.\*.data.\*.securityLabels.data.\*.id | numeric | | 3 |
+action_result.data.\*.data.\*.securityLabels.data.\*.name | string | | TLP:AMBER |
+action_result.data.\*.data.\*.securityLabels.data.\*.color | string | | FFC000 |
+action_result.data.\*.data.\*.securityLabels.data.\*.owner | string | | System |
+action_result.data.\*.data.\*.securityLabels.data.\*.dateAdded | string | | 2016-08-31T00:00:00Z |
+action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | This security label is used for information that requires support to be effectively acted upon, yet carries risks to privacy, reputation, or operations if shared outside of the organizations involved. Information with this label can be shared with members of an organization and its clients. |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
 summary.total_objects | numeric | | |
@@ -253,6 +318,9 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **hash** | required | File hash (md5, sha1, sha256) | string | `hash` `md5` `sha1` `sha256` |
 **owner** | optional | Indicator Owner within ThreatConnect | string | |
+**attribute** | optional | Retrieves Indicator attributes | boolean | |
+**tag** | optional | Retrieves Indicator tags | boolean | |
+**security_label** | optional | Retrieves Indicator security labels | boolean | |
 
 #### Action Output
 
@@ -261,19 +329,25 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.status | string | | success failed |
 action_result.parameter.hash | string | `hash` `md5` `sha1` `sha256` | |
 action_result.parameter.owner | string | | |
-action_result.data.\*.data.file.\*.confidence | numeric | | |
-action_result.data.\*.data.file.\*.dateAdded | string | | |
-action_result.data.\*.data.file.\*.description | string | | |
-action_result.data.\*.data.file.\*.id | numeric | | |
-action_result.data.\*.data.file.\*.lastModified | string | | |
-action_result.data.\*.data.file.\*.md5 | string | `md5` | |
-action_result.data.\*.data.file.\*.ownerName | string | | |
-action_result.data.\*.data.file.\*.rating | numeric | | |
-action_result.data.\*.data.file.\*.sha1 | string | `sha1` | |
-action_result.data.\*.data.file.\*.sha256 | string | `sha256` | |
-action_result.data.\*.data.file.\*.webLink | string | `url` | |
-action_result.data.\*.data.resultCount | numeric | | |
-action_result.data.\*.status | string | | |
+action_result.parameter.attribute | boolean | | |
+action_result.parameter.tag | boolean | | |
+action_result.parameter.security_label | boolean | | |
+action_result.data.\*.data.\*.id | numeric | | 1111799822086111 |
+action_result.data.\*.data.\*.md5 | string | `md5` | AAAAF2DB1295FA419B190BD7478DAAAA |
+action_result.data.\*.data.\*.type | string | | File |
+action_result.data.\*.data.\*.active | boolean | | True False |
+action_result.data.\*.data.\*.rating | numeric | | 5 |
+action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.summary | string | `hash` `md5` `sha1` `sha256` | AAAAF2DB1295FA419B190BD7478DAAAA |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/1111799822086111 |
+action_result.data.\*.data.\*.dateAdded | string | | 2025-03-05T13:28:46Z |
+action_result.data.\*.data.\*.ownerName | string | | TestUser |
+action_result.data.\*.data.\*.confidence | numeric | | 50 |
+action_result.data.\*.data.\*.legacyLink | string | | https://testxyz.threatconnect.com/auth/indicators/details/file.xhtml?file=AAAAF2DB1295FA419B190BD7478DAAAA&owner=TestUser |
+action_result.data.\*.data.\*.privateFlag | boolean | | True False |
+action_result.data.\*.data.\*.activeLocked | boolean | | True False |
+action_result.data.\*.data.\*.lastModified | string | | 2025-03-05T13:28:46Z |
+action_result.data.\*.status | string | | Success |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
 summary.total_objects | numeric | | |
@@ -292,6 +366,9 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **email** | required | Email address | string | `email` |
 **owner** | optional | Indicator Owner within ThreatConnect | string | |
+**attribute** | optional | Retrieves Indicator attributes | boolean | |
+**tag** | optional | Retrieves Indicator tags | boolean | |
+**security_label** | optional | Retrieves Indicator security labels | boolean | |
 
 #### Action Output
 
@@ -300,17 +377,48 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.status | string | | success failed |
 action_result.parameter.email | string | `email` | |
 action_result.parameter.owner | string | | |
-action_result.data.\*.data.emailAddress.\*.address | string | `email` | |
-action_result.data.\*.data.emailAddress.\*.confidence | numeric | | |
-action_result.data.\*.data.emailAddress.\*.dateAdded | string | | |
-action_result.data.\*.data.emailAddress.\*.description | string | | |
-action_result.data.\*.data.emailAddress.\*.id | numeric | | |
-action_result.data.\*.data.emailAddress.\*.lastModified | string | | |
-action_result.data.\*.data.emailAddress.\*.ownerName | string | | |
-action_result.data.\*.data.emailAddress.\*.rating | numeric | | |
-action_result.data.\*.data.emailAddress.\*.webLink | string | `url` | |
-action_result.data.\*.data.resultCount | numeric | | |
-action_result.data.\*.status | string | | |
+action_result.parameter.attribute | boolean | | |
+action_result.parameter.tag | boolean | | |
+action_result.parameter.security_label | boolean | | |
+action_result.data.\*.data.\*.id | numeric | | 1111899916230111 |
+action_result.data.\*.data.\*.tags.data.\*.id | numeric | | 153676 |
+action_result.data.\*.data.\*.tags.data.\*.name | string | | testing |
+action_result.data.\*.data.\*.rating | numeric | | 4 |
+action_result.data.\*.data.\*.confidence | numeric | | 24 |
+action_result.data.\*.data.\*.tags.data.\*.lastUsed | string | | 2025-03-08T10:06:59Z |
+action_result.data.\*.data.\*.type | string | | EmailAddress |
+action_result.data.\*.data.\*.active | boolean | | True False |
+action_result.data.\*.data.\*.address | string | `email` | abcxyz@test.com |
+action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.summary | string | `email` | abcxyz@test.com |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/1111899916230111 |
+action_result.data.\*.data.\*.dateAdded | string | | 2025-03-08T10:06:59Z |
+action_result.data.\*.data.\*.ownerName | string | | TestUser |
+action_result.data.\*.data.\*.attributes.data.\*.id | numeric | | 1111900049338111 |
+action_result.data.\*.data.\*.attributes.data.\*.type | string | | Description |
+action_result.data.\*.data.\*.attributes.data.\*.value | string | | only_value_provided |
+action_result.data.\*.data.\*.attributes.data.\*.pinned | boolean | | True False |
+action_result.data.\*.data.\*.attributes.data.\*.default | boolean | | True False |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.id | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.owner | string | | TestUser |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.lastName | string | | lab |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.userName | string | | 11111797252345448111 |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.firstName | string | | test |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.pseudonym | string | | APIUserYSRPA |
+action_result.data.\*.data.\*.attributes.data.\*.dateAdded | string | | 2025-03-08T10:06:59Z |
+action_result.data.\*.data.\*.attributes.data.\*.lastModified | string | | 2025-03-08T10:06:59Z |
+action_result.data.\*.data.\*.legacyLink | string | | https://testxyz.threatconnect.com/auth/indicators/details/emailaddress.xhtml?emailaddress=wp-security%40hotmail.com&owner=TestUser |
+action_result.data.\*.data.\*.description | string | | only_value_provided |
+action_result.data.\*.data.\*.privateFlag | boolean | | True False |
+action_result.data.\*.data.\*.activeLocked | boolean | | True False |
+action_result.data.\*.data.\*.lastModified | string | | 2025-03-08T10:06:59Z |
+action_result.data.\*.data.\*.securityLabels.data.\*.id | numeric | | 3 |
+action_result.data.\*.data.\*.securityLabels.data.\*.name | string | | TLP:AMBER |
+action_result.data.\*.data.\*.securityLabels.data.\*.color | string | | FFC000 |
+action_result.data.\*.data.\*.securityLabels.data.\*.owner | string | | System |
+action_result.data.\*.data.\*.securityLabels.data.\*.dateAdded | string | | 2016-08-31T00:00:00Z |
+action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | This security label is used for information that requires support to be effectively acted upon, yet carries risks to privacy, reputation, or operations if shared outside of the organizations involved. Information with this label can be shared with members of an organization and its clients. |
+action_result.data.\*.status | string | | Success |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
 summary.total_objects | numeric | | |
@@ -329,6 +437,9 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **domain** | required | Domain or URL name | string | `url` `domain` |
 **owner** | optional | Indicator Owner within ThreatConnect | string | |
+**attribute** | optional | Retrieves Indicator attributes | boolean | |
+**tag** | optional | Retrieves Indicator tags | boolean | |
+**security_label** | optional | Retrieves Indicator security labels | boolean | |
 
 #### Action Output
 
@@ -337,17 +448,50 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.status | string | | success failed |
 action_result.parameter.domain | string | `url` `domain` | |
 action_result.parameter.owner | string | | |
-action_result.data.\*.data.host.\*.confidence | numeric | | |
-action_result.data.\*.data.host.\*.dateAdded | string | | |
-action_result.data.\*.data.host.\*.description | string | | |
-action_result.data.\*.data.host.\*.hostName | string | `domain` | |
-action_result.data.\*.data.host.\*.id | numeric | | |
-action_result.data.\*.data.host.\*.lastModified | string | | |
-action_result.data.\*.data.host.\*.ownerName | string | | |
-action_result.data.\*.data.host.\*.rating | numeric | | |
-action_result.data.\*.data.host.\*.webLink | string | `url` | |
-action_result.data.\*.data.resultCount | numeric | | |
-action_result.data.\*.status | string | | |
+action_result.parameter.attribute | boolean | | |
+action_result.parameter.tag | boolean | | |
+action_result.parameter.security_label | boolean | | |
+action_result.data.\*.status | string | | Success |
+action_result.data.\*.data.\*.id | numeric | | 1111900049338111 |
+action_result.data.\*.data.\*.type | string | | Host |
+action_result.data.\*.data.\*.active | boolean | | True False |
+action_result.data.\*.data.\*.rating | numeric | | 2 |
+action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.summary | string | `url` `domain` | vclub.credit |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/1111900049338111 |
+action_result.data.\*.data.\*.hostName | string | `domain` | vclub.credit |
+action_result.data.\*.data.\*.dateAdded | string | | 2025-03-08T06:44:39Z |
+action_result.data.\*.data.\*.dnsActive | boolean | | True False |
+action_result.data.\*.data.\*.ownerName | string | | TestUser |
+action_result.data.\*.data.\*.confidence | numeric | | 63 |
+action_result.data.\*.data.\*.legacyLink | string | | https://testxyz.threatconnect.com/auth/indicators/details/host.xhtml?host=vclub.credit&owner=TestUser |
+action_result.data.\*.data.\*.privateFlag | boolean | | True False |
+action_result.data.\*.data.\*.whoisActive | boolean | | True False |
+action_result.data.\*.data.\*.activeLocked | boolean | | True False |
+action_result.data.\*.data.\*.lastModified | string | | 2025-03-08T06:44:39Z |
+action_result.data.\*.data.\*.tags.data.\*.id | numeric | | 153676 |
+action_result.data.\*.data.\*.tags.data.\*.name | string | | testing |
+action_result.data.\*.data.\*.tags.data.\*.lastUsed | string | | 2025-03-08T09:37:02Z |
+action_result.data.\*.data.\*.attributes.data.\*.id | numeric | | 1111900049338111 |
+action_result.data.\*.data.\*.attributes.data.\*.type | string | | Description |
+action_result.data.\*.data.\*.attributes.data.\*.value | string | | This is testing data |
+action_result.data.\*.data.\*.attributes.data.\*.pinned | boolean | | True False |
+action_result.data.\*.data.\*.attributes.data.\*.default | boolean | | True False |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.id | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.owner | string | | TestUser |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.lastName | string | | lab |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.userName | string | | 11111797252345448111 |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.firstName | string | | test |
+action_result.data.\*.data.\*.attributes.data.\*.createdBy.pseudonym | string | | APIUserYSRPA |
+action_result.data.\*.data.\*.attributes.data.\*.dateAdded | string | | 2025-03-08T09:37:02Z |
+action_result.data.\*.data.\*.attributes.data.\*.lastModified | string | | 2025-03-08T09:37:02Z |
+action_result.data.\*.data.\*.description | string | | This is testing data |
+action_result.data.\*.data.\*.securityLabels.data.\*.id | numeric | | 3 |
+action_result.data.\*.data.\*.securityLabels.data.\*.name | string | | TLP:AMBER |
+action_result.data.\*.data.\*.securityLabels.data.\*.color | string | | FFC000 |
+action_result.data.\*.data.\*.securityLabels.data.\*.owner | string | | System |
+action_result.data.\*.data.\*.securityLabels.data.\*.dateAdded | string | | 2016-08-31T00:00:00Z |
+action_result.data.\*.data.\*.securityLabels.data.\*.description | string | | This security label is used for information that requires support to be effectively acted upon, yet carries risks to privacy, reputation, or operations if shared outside of the organizations involved. Information with this label can be shared with members of an organization and its clients. |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
 summary.total_objects | numeric | | |
@@ -366,6 +510,9 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **url** | required | URL to find | string | `url` |
 **owner** | optional | Indicator Owner within ThreatConnect | string | |
+**attribute** | optional | Retrieves Indicator attributes | boolean | |
+**tag** | optional | Retrieves Indicator tags | boolean | |
+**security_label** | optional | Retrieves Indicator security labels | boolean | |
 
 #### Action Output
 
@@ -374,18 +521,25 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 action_result.status | string | | success failed |
 action_result.parameter.owner | string | | |
 action_result.parameter.url | string | `url` | |
-action_result.data.\*.data.resultCount | numeric | | |
-action_result.data.\*.data.url.\*.confidence | numeric | | |
-action_result.data.\*.data.url.\*.dateAdded | string | | |
-action_result.data.\*.data.url.\*.description | string | | |
-action_result.data.\*.data.url.\*.id | numeric | | |
-action_result.data.\*.data.url.\*.lastModified | string | | |
-action_result.data.\*.data.url.\*.ownerName | string | | |
-action_result.data.\*.data.url.\*.rating | numeric | | |
-action_result.data.\*.data.url.\*.text | string | `url` | |
-action_result.data.\*.data.url.\*.text | string | | |
-action_result.data.\*.data.url.\*.webLink | string | `url` | |
-action_result.data.\*.status | string | | |
+action_result.parameter.attribute | boolean | | |
+action_result.parameter.tag | boolean | | |
+action_result.parameter.security_label | boolean | | |
+action_result.data.\*.data.\*.id | numeric | | 2251799822191373 |
+action_result.data.\*.data.\*.text | string | `url` | http://www.test.com/list/oz/ |
+action_result.data.\*.data.\*.type | string | | URL |
+action_result.data.\*.data.\*.active | boolean | | True False |
+action_result.data.\*.data.\*.ownerId | numeric | | 11111797252348111 |
+action_result.data.\*.data.\*.summary | string | | http://www.test.com/list/oz/ |
+action_result.data.\*.data.\*.webLink | string | `url` | https://testxyz.threatconnect.com/#/details/indicators/2251799822191373 |
+action_result.data.\*.data.\*.dateAdded | string | | 2025-03-07T12:16:05Z |
+action_result.data.\*.data.\*.ownerName | string | | TestUser |
+action_result.data.\*.data.\*.legacyLink | string | | https://testxyz.threatconnect.com/auth/indicators/details/url.xhtml?orgid=2251799822191373&owner=TestUser |
+action_result.data.\*.data.\*.privateFlag | boolean | | True False |
+action_result.data.\*.data.\*.activeLocked | boolean | | True False |
+action_result.data.\*.data.\*.lastModified | string | | 2025-03-07T12:16:05Z |
+action_result.data.\*.status | string | | Success |
+action_result.data.\*.data.\*.rating | numeric | | 1 |
+action_result.data.\*.data.\*.confidence | numeric | | 60 |
 action_result.summary.total_objects | numeric | | |
 action_result.message | string | | |
 summary.total_objects | numeric | | |
