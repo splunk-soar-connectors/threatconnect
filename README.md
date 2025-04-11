@@ -1,7 +1,7 @@
 # ThreatConnect
 
 Publisher: Splunk \
-Connector Version: 3.0.0 \
+Connector Version: 3.0.1 \
 Product Vendor: ThreatConnect \
 Product Name: ThreatConnect \
 Minimum Product Version: 6.3.0
