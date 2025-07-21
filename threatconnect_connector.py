@@ -119,23 +119,23 @@ class ThreatconnectConnector(BaseConnector):
 
     def _hunt_file(self, param):
         # _hunt_file action
-        self._hunt_indicator(param)
+        return self._hunt_indicator(param)
 
     def _hunt_ip(self, param):
         # _hunt_ip action
-        self._hunt_indicator(param)
+        return self._hunt_indicator(param)
 
     def _hunt_url(self, param):
         # _hunt_url action
-        self._hunt_indicator(param)
+        return self._hunt_indicator(param)
 
     def _hunt_email(self, param):
         # _hunt_email action
-        self._hunt_indicator(param)
+        return self._hunt_indicator(param)
 
     def _hunt_host(self, param):
         # _hunt_host action
-        self._hunt_indicator(param)
+        return self._hunt_indicator(param)
 
     def _create_payload_for_hunt_indicator(self, action_result, params):
         for key, indicator_type in INDICATOR_MAPPING_JSON_TO_FIELD.items():
@@ -331,6 +331,9 @@ class ThreatconnectConnector(BaseConnector):
             elif last_time:
                 # Last polled time is taken here
                 start_time = last_time
+            else:
+                # Fallback: use first_poll if no last_time is available
+                start_time = self._first_poll(num_of_days)
 
         self.save_progress(f"Start time for polling: {start_time}")
 
