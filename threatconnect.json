@@ -13,7 +13,7 @@
     "logo_dark": "logo_threatconnect_dark.svg",
     "min_phantom_version": "6.3.0",
     "fips_compliant": true,
-    "python_version": "3",
+    "python_version": ["3.9", "3.13"],
     "latest_tested_versions": [
         "Threatconnect API v3 on March 10, 2025"
     ],
