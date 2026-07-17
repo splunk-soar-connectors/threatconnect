@@ -55,7 +55,8 @@
         "verify_server_cert": {
             "data_type": "boolean",
             "order": 1,
-            "description": "Verify server cert"
+            "description": "Verify server cert",
+            "default": true
         }
     },
     "actions": [

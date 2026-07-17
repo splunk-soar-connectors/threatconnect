@@ -799,7 +799,7 @@ class ThreatconnectConnector(BaseConnector):
                 params=params,
                 json=body,
                 headers=headers,
-                verify=config.get("verify_server_cert", False),
+                verify=config.get("verify_server_cert", True),
             )
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
