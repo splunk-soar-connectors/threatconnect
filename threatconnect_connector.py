@@ -417,6 +417,9 @@ class ThreatconnectConnector(BaseConnector):
         container_limit = self._container_limit if self._container_limit < len(indicator_list) else len(indicator_list)
 
         successful_container_count = 0
+        failed_indicator_count = 0
+        checkpoint = None
+        checkpoint_error = None
 
         beginning_of_polling_date = indicator_list[-1]["dateAdded"]
 
@@ -459,41 +462,54 @@ class ThreatconnectConnector(BaseConnector):
 
             # Create the container
             ret_val, container_message, id = self.save_container(container)
-
-            # Increment the container count if container not dupicate
-            if "duplicate" not in container_message.lower():
-                successful_container_count += 1
+            if phantom.is_fail(ret_val):
+                self.debug_print(f"Failed to save container for indicator {indicator['id']}: {container_message}")
+                failed_indicator_count += 1
+                continue
 
             # Pull the ID from the container and add it to the artifact
             artifact["container_id"] = id
 
             # Add the artifact to that container
             ret_val, artifact_message, id = self.save_artifact(artifact)
+            if phantom.is_fail(ret_val):
+                self.debug_print(f"Failed to save artifact for indicator {indicator['id']}: {artifact_message}")
+                failed_indicator_count += 1
+                continue
+
+            # Increment the container count if container not duplicate
+            if "duplicate" not in container_message.lower():
+                successful_container_count += 1
 
             # Break the loop when the container_limit set in the config is reached.
             if successful_container_count == container_limit:
                 # Only update the state file if its not poll now
-                if phantom.is_fail(self.is_poll_now()):
+                if not self.is_poll_now():
                     # Update the state in order to use the correct date for the next ingestion cycle.
                     date_to_use = self._state.get(THREATCONNECT_JSON_LAST_DATE_TIME)
 
                     if date_to_use is None:
-                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = beginning_of_polling_date
+                        checkpoint = beginning_of_polling_date
                     elif date_to_use == indicator["dateAdded"]:
-                        start_time = (parse_datetime(indicator["dateAdded"]) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
-
-                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = start_time
-
-                        return (
-                            phantom.APP_ERROR,
+                        checkpoint = (parse_datetime(indicator["dateAdded"]) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
+                        checkpoint_error = (
                             "Some indicators may have been dropped due to max containers being "
                             "smaller than the amount of indicators in a given second.  Please increase "
-                            "the max_containers in order to ensure no dropped indicators.",
+                            "the max_containers in order to ensure no dropped indicators."
                         )
                     else:
                         # As long as the indicator date and the date in the state are not the same then replace it
-                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = indicator["dateAdded"]
+                        checkpoint = indicator["dateAdded"]
                 break
+
+        if failed_indicator_count:
+            return phantom.APP_ERROR, f"{failed_indicator_count} indicator(s) failed to ingest; checkpoint not advanced"
+
+        if checkpoint:
+            self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = checkpoint
+
+        if checkpoint_error:
+            return phantom.APP_ERROR, checkpoint_error
 
         return phantom.APP_SUCCESS, ("Success" if successful_container_count else "No new indicators found")
 
