@@ -347,17 +347,38 @@ class ThreatconnectConnector(BaseConnector):
         self.save_progress("Making REST call for ingestion")
 
         endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE
+        result_limit = 100
+        result_start = 0
+        indicators = []
+        start_time_unix = int(parse_datetime(start_time).strftime("%s"))
 
-        ret_val, resp_json = self._make_rest_call(action_result, endpoint)
+        while True:
+            params = {
+                "sorting": "dateAdded desc",
+                "resultLimit": result_limit,
+                "resultStart": result_start,
+            }
+            ret_val, resp_json = self._make_rest_call(action_result, endpoint, params=params)
 
-        if phantom.is_fail(ret_val):
-            self.save_progress("REST Call failed during ingestion")
+            if phantom.is_fail(ret_val):
+                self.save_progress("REST Call failed during ingestion")
 
-            return self.set_status(phantom.APP_ERROR)
+                return self.set_status(phantom.APP_ERROR)
+
+            page = resp_json.get("data", [])
+            indicators.extend(page)
+            if len(page) < result_limit:
+                break
+
+            oldest_on_page = int(parse_datetime(page[-1]["dateAdded"]).strftime("%s"))
+            if oldest_on_page < start_time_unix:
+                break
+
+            result_start += result_limit
 
         self.save_progress("Saving containers and artifacts")
 
-        ret_val, message = self._create_containers(resp_json, start_time)
+        ret_val, message = self._create_containers({"data": indicators}, start_time)
 
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, message)
