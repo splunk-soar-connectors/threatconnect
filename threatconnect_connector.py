@@ -137,6 +137,9 @@ class ThreatconnectConnector(BaseConnector):
         # _hunt_host action
         return self._hunt_indicator(param)
 
+    def _escape_tql_literal(self, value):
+        return str(value).replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace("`", "\\`")
+
     def _create_payload_for_hunt_indicator(self, action_result, params):
         for key, indicator_type in INDICATOR_MAPPING_JSON_TO_FIELD.items():
             if indicator_to_hunt := params.get(key):
@@ -164,7 +167,7 @@ class ThreatconnectConnector(BaseConnector):
 
         payload = {
             "fields": [],
-            "tql": f"typeName IN ('{indicator_type}') AND summary CONTAINS '{indicator_to_hunt}'",
+            "tql": f"typeName IN ('{indicator_type}') AND summary CONTAINS '{self._escape_tql_literal(indicator_to_hunt)}'",
         }
 
         # Append fields if parameters are present
@@ -176,7 +179,9 @@ class ThreatconnectConnector(BaseConnector):
             else:
                 owners_list = [owner.strip() for owner in owners.replace(";", ",").split(",") if owner.strip()]
 
-            payload["tql"] += f" and ownerName in ({', '.join(map(repr, owners_list))})"
+            payload["tql"] += " and ownerName in ({})".format(
+                ", ".join(f"'{self._escape_tql_literal(owner)}'" for owner in owners_list)
+            )
 
         return phantom.APP_SUCCESS, payload
 
