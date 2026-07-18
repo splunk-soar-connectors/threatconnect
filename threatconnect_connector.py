@@ -1,6 +1,6 @@
 # File: threatconnect_connector.py
 #
-# Copyright (c) 2016-2025 Splunk Inc.
+# Copyright (c) 2016-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -179,9 +179,7 @@ class ThreatconnectConnector(BaseConnector):
             else:
                 owners_list = [owner.strip() for owner in owners.replace(";", ",").split(",") if owner.strip()]
 
-            payload["tql"] += " and ownerName in ({})".format(
-                ", ".join(f"'{self._escape_tql_literal(owner)}'" for owner in owners_list)
-            )
+            payload["tql"] += " and ownerName in ({})".format(", ".join(f"'{self._escape_tql_literal(owner)}'" for owner in owners_list))
 
         return phantom.APP_SUCCESS, payload
 
