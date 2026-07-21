@@ -1,6 +1,6 @@
 # File: threatconnect_connector.py
 #
-# Copyright (c) 2016-2025 Splunk Inc.
+# Copyright (c) 2016-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -137,6 +137,9 @@ class ThreatconnectConnector(BaseConnector):
         # _hunt_host action
         return self._hunt_indicator(param)
 
+    def _escape_tql_literal(self, value):
+        return str(value).replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace("`", "\\`")
+
     def _create_payload_for_hunt_indicator(self, action_result, params):
         for key, indicator_type in INDICATOR_MAPPING_JSON_TO_FIELD.items():
             if indicator_to_hunt := params.get(key):
@@ -164,7 +167,7 @@ class ThreatconnectConnector(BaseConnector):
 
         payload = {
             "fields": [],
-            "tql": f"typeName IN ('{indicator_type}') AND summary CONTAINS '{indicator_to_hunt}'",
+            "tql": f"typeName IN ('{indicator_type}') AND summary CONTAINS '{self._escape_tql_literal(indicator_to_hunt)}'",
         }
 
         # Append fields if parameters are present
@@ -176,7 +179,7 @@ class ThreatconnectConnector(BaseConnector):
             else:
                 owners_list = [owner.strip() for owner in owners.replace(";", ",").split(",") if owner.strip()]
 
-            payload["tql"] += f" and ownerName in ({', '.join(map(repr, owners_list))})"
+            payload["tql"] += " and ownerName in ({})".format(", ".join(f"'{self._escape_tql_literal(owner)}'" for owner in owners_list))
 
         return phantom.APP_SUCCESS, payload
 
@@ -342,17 +345,38 @@ class ThreatconnectConnector(BaseConnector):
         self.save_progress("Making REST call for ingestion")
 
         endpoint = THREATCONNECT_ENDPOINT_INDICATOR_BASE
+        result_limit = 100
+        result_start = 0
+        indicators = []
+        start_time_unix = int(parse_datetime(start_time).strftime("%s"))
 
-        ret_val, resp_json = self._make_rest_call(action_result, endpoint)
+        while True:
+            params = {
+                "sorting": "dateAdded desc",
+                "resultLimit": result_limit,
+                "resultStart": result_start,
+            }
+            ret_val, resp_json = self._make_rest_call(action_result, endpoint, params=params)
 
-        if phantom.is_fail(ret_val):
-            self.save_progress("REST Call failed during ingestion")
+            if phantom.is_fail(ret_val):
+                self.save_progress("REST Call failed during ingestion")
 
-            return self.set_status(phantom.APP_ERROR)
+                return self.set_status(phantom.APP_ERROR)
+
+            page = resp_json.get("data", [])
+            indicators.extend(page)
+            if len(page) < result_limit:
+                break
+
+            oldest_on_page = int(parse_datetime(page[-1]["dateAdded"]).strftime("%s"))
+            if oldest_on_page < start_time_unix:
+                break
+
+            result_start += result_limit
 
         self.save_progress("Saving containers and artifacts")
 
-        ret_val, message = self._create_containers(resp_json, start_time)
+        ret_val, message = self._create_containers({"data": indicators}, start_time)
 
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, message)
@@ -412,6 +436,9 @@ class ThreatconnectConnector(BaseConnector):
         container_limit = self._container_limit if self._container_limit < len(indicator_list) else len(indicator_list)
 
         successful_container_count = 0
+        failed_indicator_count = 0
+        checkpoint = None
+        checkpoint_error = None
 
         beginning_of_polling_date = indicator_list[-1]["dateAdded"]
 
@@ -454,41 +481,54 @@ class ThreatconnectConnector(BaseConnector):
 
             # Create the container
             ret_val, container_message, id = self.save_container(container)
-
-            # Increment the container count if container not dupicate
-            if "duplicate" not in container_message.lower():
-                successful_container_count += 1
+            if phantom.is_fail(ret_val):
+                self.debug_print(f"Failed to save container for indicator {indicator['id']}: {container_message}")
+                failed_indicator_count += 1
+                continue
 
             # Pull the ID from the container and add it to the artifact
             artifact["container_id"] = id
 
             # Add the artifact to that container
             ret_val, artifact_message, id = self.save_artifact(artifact)
+            if phantom.is_fail(ret_val):
+                self.debug_print(f"Failed to save artifact for indicator {indicator['id']}: {artifact_message}")
+                failed_indicator_count += 1
+                continue
+
+            # Increment the container count if container not duplicate
+            if "duplicate" not in container_message.lower():
+                successful_container_count += 1
 
             # Break the loop when the container_limit set in the config is reached.
             if successful_container_count == container_limit:
                 # Only update the state file if its not poll now
-                if phantom.is_fail(self.is_poll_now()):
+                if not self.is_poll_now():
                     # Update the state in order to use the correct date for the next ingestion cycle.
                     date_to_use = self._state.get(THREATCONNECT_JSON_LAST_DATE_TIME)
 
                     if date_to_use is None:
-                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = beginning_of_polling_date
+                        checkpoint = beginning_of_polling_date
                     elif date_to_use == indicator["dateAdded"]:
-                        start_time = (parse_datetime(indicator["dateAdded"]) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
-
-                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = start_time
-
-                        return (
-                            phantom.APP_ERROR,
+                        checkpoint = (parse_datetime(indicator["dateAdded"]) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
+                        checkpoint_error = (
                             "Some indicators may have been dropped due to max containers being "
                             "smaller than the amount of indicators in a given second.  Please increase "
-                            "the max_containers in order to ensure no dropped indicators.",
+                            "the max_containers in order to ensure no dropped indicators."
                         )
                     else:
                         # As long as the indicator date and the date in the state are not the same then replace it
-                        self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = indicator["dateAdded"]
+                        checkpoint = indicator["dateAdded"]
                 break
+
+        if failed_indicator_count:
+            return phantom.APP_ERROR, f"{failed_indicator_count} indicator(s) failed to ingest; checkpoint not advanced"
+
+        if checkpoint:
+            self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = checkpoint
+
+        if checkpoint_error:
+            return phantom.APP_ERROR, checkpoint_error
 
         return phantom.APP_SUCCESS, ("Success" if successful_container_count else "No new indicators found")
 
@@ -627,12 +667,20 @@ class ThreatconnectConnector(BaseConnector):
         if indicator_type == "mutex":
             return "Mutex Artifact", "mutex", None
         if indicator_type == "cidr":
+            if "/" not in summary:
+                return None, None, None
+            try:
+                ipaddress.ip_network(summary, strict=False)
+            except ValueError:
+                return None, None, None
             return (
                 "CIDR Artifact",
                 ["deviceAddress", "cidrPrefix", "cidr"],
                 ["ip", None, "CIDR"],
             )
         elif indicator_type == "registry key":
+            if len(summary.split(" : ")) != 3:
+                return None, None, None
             return "Registry Key Artifact", "registryKey", None
         elif indicator_type == "asn":
             return "ASN Artifact", "asn", None
@@ -799,7 +847,7 @@ class ThreatconnectConnector(BaseConnector):
                 params=params,
                 json=body,
                 headers=headers,
-                verify=config.get("verify_server_cert", False),
+                verify=config.get("verify_server_cert", True),
             )
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is

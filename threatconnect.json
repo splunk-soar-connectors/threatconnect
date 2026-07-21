@@ -19,7 +19,7 @@
     ],
     "publisher": "Splunk",
     "package_name": "phantom_threatconnect",
-    "license": "Copyright (c) 2016-2025 Splunk Inc.",
+    "license": "Copyright (c) 2016-2026 Splunk Inc.",
     "configuration": {
         "access_id": {
             "data_type": "string",
@@ -55,7 +55,8 @@
         "verify_server_cert": {
             "data_type": "boolean",
             "order": 1,
-            "description": "Verify server cert"
+            "description": "Verify server cert",
+            "default": true
         }
     },
     "actions": [
