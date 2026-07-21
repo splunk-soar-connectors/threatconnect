@@ -1,3 +1,3 @@
 **Unreleased**
 
-* Refresh ThreatConnect development tooling.
+* Remove Unicode format controls from ingested indicator values.
