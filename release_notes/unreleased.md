@@ -1,5 +1,7 @@
 **Unreleased**
 
+* Refresh development validation tooling. [PSAAS-32854]
+
 * Verify ThreatConnect server certificates by default for new and existing assets without an explicit setting.
 * Escape hunt-action values before using them in ThreatConnect Query Language filters.
 * Retain the ThreatConnect polling checkpoint when an indicator cannot be saved.
