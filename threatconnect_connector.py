@@ -667,12 +667,20 @@ class ThreatconnectConnector(BaseConnector):
         if indicator_type == "mutex":
             return "Mutex Artifact", "mutex", None
         if indicator_type == "cidr":
+            if "/" not in summary:
+                return None, None, None
+            try:
+                ipaddress.ip_network(summary, strict=False)
+            except ValueError:
+                return None, None, None
             return (
                 "CIDR Artifact",
                 ["deviceAddress", "cidrPrefix", "cidr"],
                 ["ip", None, "CIDR"],
             )
         elif indicator_type == "registry key":
+            if len(summary.split(" : ")) != 3:
+                return None, None, None
             return "Registry Key Artifact", "registryKey", None
         elif indicator_type == "asn":
             return "ASN Artifact", "asn", None
