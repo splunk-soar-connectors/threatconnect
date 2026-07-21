@@ -20,6 +20,7 @@ import hashlib
 import hmac
 import ipaddress
 import time
+import unicodedata
 from datetime import datetime, timedelta
 
 import phantom.app as phantom
@@ -35,6 +36,10 @@ from requests import Request
 
 # App-specific imports
 from threatconnect_consts import *
+
+
+def _strip_unicode_format_controls(value):
+    return "".join(character for character in value if unicodedata.category(character) != "Cf")
 
 
 class RetVal(tuple):
@@ -445,7 +450,7 @@ class ThreatconnectConnector(BaseConnector):
         for indicator in reversed(indicator_list):
             # Required fields that are present in every Indicator
             required_fields = {
-                "summary": str(indicator["summary"]),
+                "summary": _strip_unicode_format_controls(str(indicator["summary"])),
                 "indicator_type": str(indicator["type"]).lower(),
                 "date_created": str(indicator["dateAdded"]),
                 "date_modified": str(indicator["lastModified"]),

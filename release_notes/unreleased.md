@@ -1,1 +1,3 @@
 **Unreleased**
+
+* Remove Unicode format controls from ingested indicator values.
