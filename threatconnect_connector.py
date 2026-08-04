@@ -853,6 +853,7 @@ class ThreatconnectConnector(BaseConnector):
                 json=body,
                 headers=headers,
                 verify=config.get("verify_server_cert", True),
+                timeout=THREATCONNECT_DEFAULT_TIMEOUT,
             )
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
