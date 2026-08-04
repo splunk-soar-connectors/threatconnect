@@ -196,21 +196,35 @@ class ThreatconnectConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        # Make the rest call
-        ret_val, response = self._make_rest_call(
-            action_result,
-            endpoint=THREATCONNECT_ENDPOINT_INDICATOR_BASE,
-            params=payload,
-        )
+        payload.update({"resultLimit": 10000, "resultStart": 0})
+        indicators = []
 
-        if phantom.is_fail(ret_val):
-            return action_result.get_status()
+        while True:
+            ret_val, response = self._make_rest_call(
+                action_result,
+                endpoint=THREATCONNECT_ENDPOINT_INDICATOR_BASE,
+                params=payload,
+            )
 
-        if response["status"] == THREATCONNECT_STATUS_FAILURE:
-            return action_result.set_status(phantom.APP_ERROR, "Response failed", response["message"])
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
 
+            if response["status"] == THREATCONNECT_STATUS_FAILURE:
+                return action_result.set_status(phantom.APP_ERROR, "Response failed", response["message"])
+
+            page = response["data"]
+            indicators.extend(page)
+            if not response.get("next"):
+                break
+            if not page:
+                return action_result.set_status(phantom.APP_ERROR, "ThreatConnect returned an empty paginated response")
+
+            payload["resultStart"] += len(page)
+
+        response["data"] = indicators
+        response.pop("prev", None)
         action_result.add_data(response)
-        action_result.set_summary({"total_objects": len(response["data"])})
+        action_result.set_summary({"total_objects": len(indicators)})
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
