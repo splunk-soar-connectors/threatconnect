@@ -21,7 +21,7 @@ import hmac
 import ipaddress
 import time
 import unicodedata
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import phantom.app as phantom
 
@@ -196,21 +196,35 @@ class ThreatconnectConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        # Make the rest call
-        ret_val, response = self._make_rest_call(
-            action_result,
-            endpoint=THREATCONNECT_ENDPOINT_INDICATOR_BASE,
-            params=payload,
-        )
+        payload.update({"resultLimit": 10000, "resultStart": 0})
+        indicators = []
 
-        if phantom.is_fail(ret_val):
-            return action_result.get_status()
+        while True:
+            ret_val, response = self._make_rest_call(
+                action_result,
+                endpoint=THREATCONNECT_ENDPOINT_INDICATOR_BASE,
+                params=payload,
+            )
 
-        if response["status"] == THREATCONNECT_STATUS_FAILURE:
-            return action_result.set_status(phantom.APP_ERROR, "Response failed", response["message"])
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
 
+            if response["status"] == THREATCONNECT_STATUS_FAILURE:
+                return action_result.set_status(phantom.APP_ERROR, "Response failed", response["message"])
+
+            page = response["data"]
+            indicators.extend(page)
+            if not response.get("next"):
+                break
+            if not page:
+                return action_result.set_status(phantom.APP_ERROR, "ThreatConnect returned an empty paginated response")
+
+            payload["resultStart"] += len(page)
+
+        response["data"] = indicators
+        response.pop("prev", None)
         action_result.add_data(response)
-        action_result.set_summary({"total_objects": len(response["data"])})
+        action_result.set_summary({"total_objects": len(indicators)})
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -443,9 +457,6 @@ class ThreatconnectConnector(BaseConnector):
         successful_container_count = 0
         failed_indicator_count = 0
         checkpoint = None
-        checkpoint_error = None
-
-        beginning_of_polling_date = indicator_list[-1]["dateAdded"]
 
         for indicator in reversed(indicator_list):
             # Required fields that are present in every Indicator
@@ -501,39 +512,21 @@ class ThreatconnectConnector(BaseConnector):
                 failed_indicator_count += 1
                 continue
 
+            checkpoint = indicator["dateAdded"]
+
             # Increment the container count if container not duplicate
             if "duplicate" not in container_message.lower():
                 successful_container_count += 1
 
             # Break the loop when the container_limit set in the config is reached.
             if successful_container_count == container_limit:
-                # Only update the state file if its not poll now
-                if not self.is_poll_now():
-                    # Update the state in order to use the correct date for the next ingestion cycle.
-                    date_to_use = self._state.get(THREATCONNECT_JSON_LAST_DATE_TIME)
-
-                    if date_to_use is None:
-                        checkpoint = beginning_of_polling_date
-                    elif date_to_use == indicator["dateAdded"]:
-                        checkpoint = (parse_datetime(indicator["dateAdded"]) + timedelta(seconds=1)).strftime(DATETIME_FORMAT)
-                        checkpoint_error = (
-                            "Some indicators may have been dropped due to max containers being "
-                            "smaller than the amount of indicators in a given second.  Please increase "
-                            "the max_containers in order to ensure no dropped indicators."
-                        )
-                    else:
-                        # As long as the indicator date and the date in the state are not the same then replace it
-                        checkpoint = indicator["dateAdded"]
                 break
 
         if failed_indicator_count:
             return phantom.APP_ERROR, f"{failed_indicator_count} indicator(s) failed to ingest; checkpoint not advanced"
 
-        if checkpoint:
+        if checkpoint and not self.is_poll_now():
             self._state[THREATCONNECT_JSON_LAST_DATE_TIME] = checkpoint
-
-        if checkpoint_error:
-            return phantom.APP_ERROR, checkpoint_error
 
         return phantom.APP_SUCCESS, ("Success" if successful_container_count else "No new indicators found")
 
@@ -853,6 +846,7 @@ class ThreatconnectConnector(BaseConnector):
                 json=body,
                 headers=headers,
                 verify=config.get("verify_server_cert", True),
+                timeout=THREATCONNECT_DEFAULT_TIMEOUT,
             )
         except Exception as e:
             # Set the action_result status to error, the handler function will most probably return as is
